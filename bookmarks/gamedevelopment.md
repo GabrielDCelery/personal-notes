@@ -1,4 +1,4 @@
-### <u>Game development</u>
+### Game development
 
 ---
 
