@@ -1,6 +1,4 @@
-### <u>Bookmarks</u>
-
-Collection of useful bookmarks
+### Bookmarks
 
 ---
 
