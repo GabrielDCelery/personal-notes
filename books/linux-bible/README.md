@@ -13,7 +13,7 @@
 9. Installing Linux
 10. Getting and Managing Software
 11. Managing User Accounts
-12. Managing Disk and Filesystems
+12. [Managing Disk and Filesystems](./linux-bible-chapter-012.md)
 13. Understanding Server Administration
 14. Administer Networking
 15. Starting and Stopping Services
