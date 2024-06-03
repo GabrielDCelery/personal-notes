@@ -19,7 +19,7 @@
 15. Starting and Stopping Services
 16. Configuring a Print Server
 17. Configuring a Web Server
-18. COnfiguring an FTP Server
+18. Configuring an FTP Server
 19. Configuring a Windows File SHaring (Samba) Server
 20. Configuring an NFS File Server
 21. Troublshooting Linux
