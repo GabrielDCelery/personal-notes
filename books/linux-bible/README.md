@@ -7,7 +7,7 @@
 3. Using the Shell
 4. Moving around the Filesystem
 5. Woring with Text Files
-6. Managing Running Processes
+6. [Managing Running Processes](./linux-bible-chapter-006.md)
 7. Writing Simple Shell Scripts
 8. Learning System Administration
 9. Installing Linux
