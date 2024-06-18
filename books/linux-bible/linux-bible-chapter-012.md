@@ -15,7 +15,7 @@ Historically the `MBR (Master Boot Record)` has been used to store size and layo
 There are lot of tools to handle Linux partitions, examples are:
 
 - `fdisk` - for MBR
-- `gdisk` - gdisk GPT in a CLI
+- `gdisk` - GPT in a CLI
 - `parted` - MBR and GPT in a CLI
 - `gparted` - MBR and GPT in a GUI
 
