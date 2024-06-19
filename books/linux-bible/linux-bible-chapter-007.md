@@ -90,3 +90,130 @@ echo $param1 $param2
 #### Parameter expansion
 
 One of the key aspects of shell variables is that `$VAR` is just a shorthand to `${VAR}`. This is important because if we use the long form of variables we can do some really neat tricks.
+
+```sh
+#!/bin/bash
+
+MYFILENAME=/home/username/myfile.txt
+
+echo ${VAR_DOES_NOT_EXIST:=defaultvalue}    # use a default value if variable does not exist
+echo ${MYFILENAME#*/}                       # chop the shortest match from the font
+echo ${MYFILENAME##*/}                      # chop the longest match from the font
+echo ${MYFILENAME%/*}                       # chop the shortest match from the end
+echo ${MYFILENAME%%/*}                      # chop the longest match from the end
+```
+
+The above will print:
+
+```sh
+defaultvalue
+home/username/myfile.txt
+myfile.txt
+/home/username
+(empty)
+```
+
+#### Performing arithmetics in shell scritps
+
+When assigning values to variables Linux will do its best at runtime to determine the type of the variable. If we want to do arithmetic operations the two commands that are used the most often are `expr` and `bc`
+
+```sh
+expr 16 / 4                 # will print 4
+echo "16 / 4" | bc          # will print 4
+```
+
+#### Using programming constructs
+
+Some examples of how the `if` condition can be used:
+
+The operator `-eq` checks if the two values are equal. Generally recommended for numbers.
+
+```sh
+#!/bin/bash
+VARIABLE=1
+if [ $VARIABLE -eq 1 ] ; then
+    echo "The variable is 1"
+fi
+```
+
+The operator `=` and `!=` can also be used for equality checks but they are generally recommended for string comparisons.
+
+```sh
+#!/bin/bash
+VARIABLE=FOO
+if [ $VARIABLE = "FOO" ] ; then
+    echo "The variable is FOO"
+fi
+```
+
+If you want to test for additional conditions you can use the `elif` and `else` expressions.
+
+Conditions are always interpreted within square brackets `[ ]`, if they evaluate to true they return `0` and `1` if false.
+
+If interested in the list of possible conditional expressions use `man bash` and search for `CONDITIONAL EXPRESSIONS`.
+
+Conditions can also be used for one line expressions in combination with `||` or `&&` operators.
+
+```sh
+dirname=/tmp/testdir
+[ -d $dirname ] || mkdir $dirname
+```
+
+```sh
+[ $# -ge 3] && echo "There are at least three command line arguments"
+```
+
+#### The case command
+
+Shell scripts allow for the use of switch statements in case we don't want to use if else statements.
+
+```sh
+#!/bin/bash
+case $(date +%a) in
+        "Mon")
+                echo "It is Monday"
+                ;;
+        "Tue" | "Thu")
+                echo "It is Tuesday or Thursday"
+                ;;
+        "Wed" | "Fri")
+                echo "It is Wednesday or Friday"
+                ;;
+        *)
+                echo "It is weekend"
+                ;;
+esac
+```
+
+#### for ... do ... done loops
+
+The `for` loop makes it possible to loop through lists.
+
+```sh
+for NUMBER in 0 1 2 3 ; do
+    echo $NUMBER
+done
+```
+
+```sh
+for FILE in $(ls) ; do
+    echo $FILE
+done
+```
+
+#### while ... do ... done loops
+
+The `while` loop can be ran until it matches the condition.
+
+```sh
+#!/bin/bash
+N=0
+while [ $N -lt 10 ] ; do
+    echo $N
+    N=$(expr $N + 1)
+done
+```
+
+#### Text manipulation
+
+There are several built in commands in linux that allow for searching and manipulating text, like `grep`, `cut`, `tr`, `awk` and `sed`.
