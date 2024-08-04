@@ -16,9 +16,11 @@ If it uses `One region` configuration then every service that it is trailing has
 
 Global services like `IAM`, `STS` or `Cloudfront` send their data to `us-east-1`. These types of events are called `Global service events` and apart from having a CloudTrail being correctly set up in the `us-east-1` region they also have to have the feature to log these events enabled to make it work.
 
+Cloudtrail logs can also have `log verification` enabled which means if someone tampered with the logs you will be able to determine that.
+
 #### How do CloudTrail logs get stored?
 
-When setting up CloudTrail you have to specify an `S3 bucket` where the logs get stored as `compressed JSON` files to minimize storage.
+When setting up CloudTrail you have to specify an `S3 bucket` where the logs get stored as `compressed JSON` files to minimize storage. The logs can also be encrypted, but for that you need to have a custom `KMS key`.
 
 In addition to that CloudTrail can be configured to forward the collected logs to `CloudWatch Logs`.
 
