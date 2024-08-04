@@ -18,7 +18,7 @@ Global services like `IAM`, `STS` or `Cloudfront` send their data to `us-east-1`
 
 #### How do CloudTrail logs get stored?
 
-When setting up CloudTrail you have to specify an `S3 bucket` where the logs get stored as `compressed JSON` files to minimize storage. You only pay for the stored data the same way you pay for any data stored in S3.
+When setting up CloudTrail you have to specify an `S3 bucket` where the logs get stored as `compressed JSON` files to minimize storage.
 
 In addition to that CloudTrail can be configured to forward the collected logs to `CloudWatch Logs`.
 
