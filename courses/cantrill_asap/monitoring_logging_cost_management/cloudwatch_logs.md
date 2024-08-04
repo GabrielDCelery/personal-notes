@@ -33,7 +33,7 @@ There are a few ways to get logs out of Cloudwatch.
 
 The first method is to create an `S3` export task that will automatically export logs. This is not immediate, there is an `up to 12 hours` delay. An other caveat that this data cannot be custom encrypted, it has to use the `default AWS KMS`.
 
-If we want to deliver our logs at `real time` to other systems then we have to create a `Subscription filter` on a `log group` and that specifies which logs get forwarded and where they are being sent.
+If we want to deliver our logs to other systems then we have to create a `Subscription filter` on a `log group` and that specifies which logs get forwarded and where they are being sent.
 
 If you need `near real time` delivery then `Kinesis Firehose` is a good choice because that can send data either every `60 seconds` or when it's `buffer gets full`. That data from the Firehose can be forwarded to `S3`. This is also a very `cost effective` solution.
 
