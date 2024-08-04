@@ -22,6 +22,10 @@ When setting up CloudTrail you have to specify an `S3 bucket` where the logs get
 
 In addition to that CloudTrail can be configured to forward the collected logs to `CloudWatch Logs`.
 
+#### CloudTrail pricing
+
+In terms of pricing CloudTrail charges for the logs that get analyzed and stored. In terms of analysis `one trail in every region on every account for Management events come for free`, but Data events or additional trails cost money. In terms of storage the `S3` storage rates apply (so it is a smart move to configure the bucket accordingly).
+
 #### Managing logs accross an organization
 
 One of the newer features of CloudTrails is that if you set up the trail within the `management account` of the orgainization then you get the ability to track logs accross every account withing that organization.
