@@ -28,7 +28,7 @@ In terms of pricing CloudTrail charges for the logs that get analyzed and stored
 
 #### Managing logs accross an organization
 
-One of the newer features of CloudTrails is that if you set up the trail within the `management account` of the orgainization then you get the ability to track logs accross every account withing that organization.
+One of the newer features of CloudTrails is that if you set up the trail within the `management account` of the orgainization then you get the ability to track logs accross every account withing that organization. The way thay works is that when you are logged into the management account and set up a new trail you will be presented with a checkbox to enable the trail for all accounts withing the organization.
 
 #### Additional considerations
 
