@@ -16,4 +16,10 @@ Every subnet has `5 reserved` IP addresses that can not be used by any of the in
 
 #### DHCP Option set
 
+Every VPC has a configuration set attached to them, called the `DHCP option set`. This configuration is what gets carried over to subnets. It controls things like `DNS servers`, `NTP servers`, `NetBIOS servers` and some other things. You can create option sets to replace existing ones, but `you can not edit them` once they have been created.
+
+#### Other subnet settings
+
+There are two other important settings for subnets. One is `auto assigning IPv4 addresses`. If that is turned on than any instance in that subnet alongside their privately allocated IP address will get a public IP address allocated. The other importan option is to enable `auto assigning IPv6 addresses`. For the latter IPv6 has to be enabled both at the VPC and the subnet level.
+
 
