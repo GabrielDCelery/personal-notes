@@ -139,4 +139,33 @@ c7e23c2 HEAD@{26}: commit: D
 8ec7767 HEAD@{33}: commit (initial): A
 ```
 
+### Merging individual sha
 
+One of the great things git allows you to do is not just to merge branches, bur individual commits as well. For that you need the specific `sha` and rather then specifying the name of the branch you use that.
+
+```sh
+git merge <sha>
+```
+
+This can also be used to restroe branches that you accidentally deleted. Assume you ran a `gir branch -D baz` and you just deleted a branch of yours. You could do the following:
+
+```sh
+git reflog -5 # Use this to grab the latest commits
+
+
+7f9035b HEAD@{0}: checkout: moving from baz to trunk
+53c8298 HEAD@{1}: commit: baz
+7f9035b HEAD@{2}: checkout: moving from trunk to baz
+7f9035b HEAD@{3}: checkout: moving from foo to trunk
+2440841 HEAD@{4}: checkout: moving from trunk to foo
+
+git merge 53c8298
+```
+
+The only issue with that if in the meantime the branch you are merging into has changed too then all the changes since then will be applied from the `common ancestor`. So if we want to avoid that then better to use `cherry pick`.
+
+With the above example we would do:
+
+```sh
+git cherry-pick 53c8298
+```
