@@ -49,8 +49,8 @@ If the `best common ancestor` is the tip of the branch you are merging into then
 
 The basic steps of rebase
 
-1. go to the branch that you want to rebase -> `current branch`
-2. run `git rebase <target branch>`
+1. go to the branch that you want to update -> `current branch`
+2. run `git rebase <target branch>` (where target branch refers to the branch you want to pull behind the current branch)
 3. this will check out the latest commit on `target branch`
 4. and then will play one commit at a time from `current branch`
 5. once finished will update `curent branch` to the `commit sha`
