@@ -1,4 +1,6 @@
-# How to convert a Raspberry Pi into a WiFi router ## Why did I want to create my own router for my homelab
+# How to convert a Raspberry Pi into a WiFi router
+
+## Why did I want to create my own router for my homelab
 
 As of this writing we were living at a place where we had to use the landlord's internet (which was in an other building) which meant the physical router was in his posession. In order to be able to run my homelab I decided to set up my own router. Main considerations:
 

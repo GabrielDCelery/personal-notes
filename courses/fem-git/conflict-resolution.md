@@ -22,3 +22,7 @@ git stash show [--index <index>] # This will show the changes at a current index
 git stash pop # pop the latest changes on top of the current working tree
 git stash pop --index <index> # pop a specific index on top of the current working tree
 ```
+
+
+
+
