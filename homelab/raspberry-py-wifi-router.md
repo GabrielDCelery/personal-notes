@@ -1,3 +1,9 @@
+---
+title: How to convert a Raspberry Pi into a WiFi router
+date: 2024-09-01T16:46:13+01:00
+draft: true
+---
+
 # How to convert a Raspberry Pi into a WiFi router
 
 ## Why did I want to create my own router for my homelab
