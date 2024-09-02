@@ -1,10 +1,3 @@
-+++
-title = 'How to convert a Raspberry Pi into a WiFi routert'
-date = 2024-09-01T16:46:13+01:00
-draft = true
-tags = ['router', 'raspberrypi']
-+++
-
 # How to convert a Raspberry Pi into a WiFi router
 
 ## Why did I want to create my own router for my homelab
