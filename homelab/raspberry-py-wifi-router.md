@@ -2,6 +2,7 @@
 title: How to convert a Raspberry Pi into a WiFi router
 date: 2024-09-01T16:46:13+01:00
 draft: true
+tags: ['raspberrypi', 'router']
 ---
 
 # How to convert a Raspberry Pi into a WiFi router
