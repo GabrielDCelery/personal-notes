@@ -1,6 +1,6 @@
 ---
 title: {{ title }}
-author:
+author: {{ author }}
 date: {{ date }}
 tags:
 draft: true
