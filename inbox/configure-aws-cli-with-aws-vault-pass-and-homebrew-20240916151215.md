@@ -36,6 +36,7 @@ export AWS_VAULT_PASS_PASSWORD_STORE_DIR=$HOME/.password-store/aws-vault
 ```
 
 Add your aws credentials to pass
+
 ```sh
 aws-vault add my-aws-account
 ```
