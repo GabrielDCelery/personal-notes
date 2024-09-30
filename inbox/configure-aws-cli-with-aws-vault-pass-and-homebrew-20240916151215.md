@@ -35,7 +35,7 @@ export AWS_VAULT_BACKEND=pass
 export AWS_VAULT_PASS_PASSWORD_STORE_DIR=$HOME/.password-store/aws-vault
 ```
 
-Add your aws credentials to pass
+If using an IAM user directly add your aws credentials to pass, if using SSO then the below step can be omitted
 
 ```sh
 aws-vault add my-aws-account
