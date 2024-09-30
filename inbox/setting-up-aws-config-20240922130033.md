@@ -8,7 +8,7 @@ draft: true
 
 # Setting up aws config
 
-Example of how to set up aws config when we have an IAM user with an access key and security key
+## Example of how to set up aws config when we have an IAM user with an access key and security key
 
 ```sh
 # profile iamadmin-management - the profile for the aws-cli
@@ -23,7 +23,7 @@ region=eu-west-2
 mfa_serial=arn:aws:iam::100848142372:mfa/iamadmin@training-awsdevops-100848142372
 ```
 
-Example of how to set up aws config where user is using SSO and the IAM Identity Center serves as the identity provider
+## Example of how to set up aws config where user is using SSO and the IAM Identity Center serves as the identity provider
 
 ```sh
 # profile sso-management -management - the profile for the aws-cli
@@ -40,4 +40,24 @@ sso_region = eu-west-2
 sso_account_id = 100848142372
 sso_role_name = AdministratorAccess
 region = eu-west-2
+```
+
+## Example of how to set up a complete profile sso integration where you are role switching to an other account
+
+```sh
+[profile gabe_dev]
+cli_pager =
+sso_session = gabe_sso
+region = eu-west-2
+output = json
+
+[sso-session gabe_sso]
+sso_start_url= https://gabe.awsapps.com/start
+sso_region = eu-west-2
+sso_account_id = 100848142372
+sso_role_name = AdministratorAccess
+
+[profile gabe_prod]
+role_arn = arn:aws:iam::840123889431:role/ProductionAccessRole
+source_profile = gabe_dev
 ```
