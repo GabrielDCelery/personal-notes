@@ -6,6 +6,24 @@ tags:
 draft: true
 ---
 
+# Multi-architecture Manifest (Legacy)
+
+[!WARNING] This is the legacy method of building containers for multiple architectures. Use BuildX instead
+
+Create multiple builds
+
+```sh
+docker build -f Dockerfile.x86 -t my-image:linux-x86
+docker build -f Dockerfile.arm -t my-image:arm
+```
+
+Then use the manifest command to merge the docker images together
+
+```sh
+docker manifest create my-image:tag my-image:linux-x86 my-image:arm
+````
+
+
 # Multi-architecture Docker images with BuildX for different processors
 
 ## Login to Docker
