@@ -25,9 +25,9 @@ RUN adduser \
     --uid 65532 \
     app-user
 
-# set GOPATH and GOCACHE
-ENV GOPATH=/root/go
-ENV GOCACHE=/root/.cache/go-build
+# set GOPATH and GOCACHE (using ARG for build time only variables)
+ARG GOPATH=/root/go
+ARG GOCACHE=/root/.cache/go-build
 
 # sets workdir to go source files path
 WORKDIR ${GOPATH}/src/app
