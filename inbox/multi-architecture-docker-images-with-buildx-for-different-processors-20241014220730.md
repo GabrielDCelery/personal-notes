@@ -80,7 +80,18 @@ Platforms: linux/amd64, linux/amd64/v2, linux/amd64/v3, linux/arm64, linux/riscv
 
 ## Build image using buildx
 
+There are two ways of building your image
+
+### Build and push to remote registry
+
 ```sh
-docker buildx build --platform linux/amd64,linux/arm64 -t myimagename .
+docker buildx build --platform linux/amd64,linux/arm64 -t myimagename:tag --push .
+```
+
+### Build into a local image
+
+
+```sh
+docker buildx build --load myimagename:tag .
 ```
 
