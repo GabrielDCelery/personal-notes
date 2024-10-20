@@ -1,14 +1,14 @@
 ---
-title: Conflict resolution
+title: Git stash
 author: Gabor Zeller
 date: 2024-09-01T16:46:13Z
 tags: ['git']
 draft: true
 ---
 
-# Conflict resolution
+# Git stash
 
-## Options of dealing with conflict resolution
+## Dealing with conflict resolution
 
 The problem we all face is that after making a change we might need to integrate someone else's change into our codebase. There are usually several options to do that:
 
