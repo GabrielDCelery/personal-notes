@@ -1,12 +1,13 @@
 ---
-title: Private and Public services
+title: AWS Private and Public services
 author: Gabor Zeller
 date: 2024-09-01T16:46:13Z
-tags: ['aws']
+tags: 
+    - aws
 draft: true
 ---
 
-# Private and Public services
+# AWS Private and Public services
 
 From a networking perspective AWS separates `Private` and `Public` services.
 
