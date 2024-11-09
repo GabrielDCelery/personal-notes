@@ -2,7 +2,9 @@
 title: VPC sizing and structure
 author: Gabor Zeller
 date: 2024-09-01T16:46:13Z
-tags: ['aws']
+tags: 
+    - aws
+    - vpc
 draft: true
 ---
 
@@ -10,13 +12,13 @@ draft: true
 
 Even though AWS provides a virtual network, many of the same considerations have to go into designing an `IP plan` and `VPC sructure` as if it was an on premise network. This is one of the most critical works a solutions architect can do because it is very difficult to get it right, and even more difficult to change later if you don't get it right.
 
-#### Main considerations are
+## Main considerations are
 
 - size of VPC (how many machines do we need to support)
 - are there any networks we can not use? VPCs, On-premises, partners & vendors network can overlap with ours which can make communication difficult
 - what is going to be the structure? How many subnets, or tiers do we need? How many AZs across should we span our network
 
-#### Example scenario
+## Example scenario
 
 Corporation with `3 offices` in London, Seattle and New York. The IP range of the London office is `192.168.15.0/24`, New York is `192.168.20.0/24`, Seattle is `192.168.25.0/24`. We also have `field workers` who need to communciate and connect to the business. And the business also has `3 other existing IP ranges`. An on-premise network in Austraila that is `192.168.10.0/24`, an AWS pilot network at `10.0.0.0/16` and an Azure pilot network at `172.31.0.0/16`.
 
@@ -24,7 +26,7 @@ Also there is an extra caveat. A previous architect tried to set up a proof of c
 
 The new VPC design can not use any of these existing networks and can not overlap with any of them.
 
-#### Initial considerations
+## Initial considerations
 
 The Azure pilot network `172.31.0.0/16` uses the same range as the `AWS default VPC`. Which means we have to try to avoid using the default VPC for anything.
 
@@ -42,7 +44,7 @@ Given all the above we can come up with a plan that we will operate in `5 region
 
 Also knowing that we prefer to start at `10.16.0.0` and we can not use the Google range, that means we can go up to `10.127.0.0` (inclusive).
 
-#### Splitting up the VPC range
+## Splitting up the VPC range
 
 The size of the VPC can be determined thinking about how many `subnets`, or better to say how many `AZs` we want to span our VPC across and how many `tiers` we are going to need within the VPC.
 
@@ -52,7 +54,7 @@ In terms of application tier we can think of the traditional `web`, `app` and `d
 
 With this we end up having a `4x4 grid`, `16 subnets per VPC`. So if we go with a `/16` network then we get `/20` subnets.
 
-#### How will it look in practice
+## How will it look in practice
 
 Given the pre-requisites and the plan we can have our starting ranges at:
 
