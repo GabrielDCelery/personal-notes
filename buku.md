@@ -1,1 +1,3 @@
 - [Big-O Algorithm Complexity Cheat Sheet (Know Thy Complexities!) @ericdrowell](https://www.bigocheatsheet.com) <!-- TAGS: algorithms -->
+- [Red Blob Games](https://www.redblobgames.com) <!-- TAGS: algorithms,games,math -->
+- [Production Readiness Checklist](https://www-proxy.gruntwork.io/devops-checklist) <!-- TAGS: aws,devops -->
