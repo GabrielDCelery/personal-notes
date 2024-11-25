@@ -1,12 +1,12 @@
 ---
-title: SQL assign select query results to variable as table
+title: SQL assign select query results to variable as table using with
 author: GaborZeller
 date: 2024-11-25T20-27-03Z
 tags: sql
 draft: true
 ---
 
-# SQL assign select query results to variable as table
+# SQL assign select query results to variable as table using with
 
 You can use the `with` statement to create temporary tables that can be referenced accross the query.
 
