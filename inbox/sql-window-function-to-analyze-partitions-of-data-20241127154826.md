@@ -2,7 +2,7 @@
 title: SQL window function to analyze partitions of data
 author: GaborZeller
 date: 2024-11-27T15-48-26Z
-tags:
+tags: sql
 draft: true
 ---
 
