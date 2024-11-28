@@ -115,8 +115,8 @@ LIMIT 3;
 
 ## Casting strings as dates and timestamps
 
-- `::DATE` or `TO_DATE()` -  Convert strings into dates
-- `::TIMESTAMP` or `TO_TIMESTAMP()` - Convert strings into timestamps
+- `::DATE` or `TO_DATE()` - casts date as the date part only
+- `::TIMESTAMP` or `TO_TIMESTAMP()` - casts date as date and time
 
 ```sql
 SELECT 
