@@ -129,3 +129,12 @@ FROM messages
 LIMIT 3;
 ```
 
+## Generate date from components using MAKE_DATE
+
+```
+MAKE_DATE( year int, month int, day int ) → date
+```
+
+```sql
+SELECT MAKE_DATE(2023,3, 25);
+```
