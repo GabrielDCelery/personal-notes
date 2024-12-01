@@ -1,3 +1,21 @@
 - [Big-O Algorithm Complexity Cheat Sheet (Know Thy Complexities!) @ericdrowell](https://www.bigocheatsheet.com) <!-- TAGS: algorithms -->
 - [Red Blob Games](https://www.redblobgames.com) <!-- TAGS: algorithms,games,math -->
 - [Production Readiness Checklist](https://www-proxy.gruntwork.io/devops-checklist) <!-- TAGS: aws,devops -->
+- [How to Build an End to End Production-Grade Architecture on AWS Part 1 | by Yoriyasu Yano | Gruntwork](https://blog.gruntwork.io/how-to-build-an-end-to-end-production-grade-architecture-on-aws-part-1-eae8eeb41fec) <!-- TAGS: architecture,aws -->
+- [Event-Driven Architectures: Why Event-First Thinking Changes Everything | Confluent | UK](https://www.confluent.io/en-gb/blog/journey-to-event-driven-part-1-why-event-first-thinking-changes-everything) <!-- TAGS: event-driven -->
+- [DataLemur - Ace the SQL & Data Science Interview](https://datalemur.com) <!-- TAGS: sql -->
+- [Terminal Trove - The $HOME of all things in the terminal.](https://terminaltrove.com) <!-- TAGS: cli,terminal -->
+- [GitHub - superfly/litefs: FUSE-based file system for replicating SQLite databases across a cluster of machines](https://github.com/superfly/litefs) <!-- TAGS: sqlite -->
+- [GitHub - benbjohnson/litestream: Streaming replication for SQLite.](https://github.com/benbjohnson/litestream) <!-- TAGS: sqlite -->
+- [GitHub - minio/minio: MinIO is a high-performance, S3 compatible object store, open sourced under GNU AGPLv3 license.](https://github.com/minio/minio) <!-- TAGS: object-storage,s3 -->
+- [Excalidraw | Hand-drawn look & feel • Collaborative • Secure](https://excalidraw.com) <!-- TAGS: diagram,whiteboard -->
+- [WireGuard: fast, modern, secure VPN tunnel](https://www.wireguard.com) <!-- TAGS: vpn -->
+- [Linux System Administration Archives – devconnected](https://devconnected.com/category/linux-administration) <!-- TAGS: devops,linux -->
+- [GitHub - MaartenGr/KeyBERT: Minimal keyword extraction with BERT](https://github.com/MaartenGr/KeyBERT) <!-- TAGS: keyword,tag -->
+- [Aseprite - Animated sprite editor & pixel art tool](https://www.aseprite.org) <!-- TAGS: game -->
+- [Tiled | Flexible level editor](https://www.mapeditor.org) <!-- TAGS: game -->
+- [Excalidraw | Online whiteboard collaboration made easy](https://plus.excalidraw.com) <!-- TAGS: documentation -->
+- [Obsidian - Sharpen your thinking](https://obsidian.md) <!-- TAGS: notes -->
+- [Wireshark for BEGINNERS // Where to start with Wireshark - YouTube](https://www.youtube.com/watch?v=OU-A2EmVrKQ&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ) <!-- TAGS: chris greer,free wireshark course,free wireshark training,getting started with wireshark,how to use wireshark,intro to wireshark,introduction to wireshark,network analysis,network analysis with wireshark,network security,network troubleshooting,tcp/ip analysis,wireshark,wireshark basics,wireshark class,wireshark course,wireshark for beginners,wireshark masterclass,wireshark tips,wireshark training,wireshark tutorial,wireshark tutorial 2021,youtube -->
+- [Note taking with Neovim and Obsidian - YouTube](https://www.youtube.com/watch?v=1Lmyh0YRH-w) <!-- TAGS:  camera phone, free, sharing, upload, video phone,video -->
+- [Zettelkasten for programmers - YouTube](https://www.youtube.com/watch?v=z9IgFRAVV9w) <!-- TAGS:  camera phone, free, sharing, upload, video phone,video -->
