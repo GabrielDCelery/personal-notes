@@ -1,12 +1,12 @@
 ---
-title: Useful jq commands
+title: How to use Linux CLI Jq command
 author: GaborZeller
 date: 2024-09-23T20-36-23Z
-tags:
+tags: linux
 draft: true
 ---
 
-# Useful jq commands
+# How to use Linux CLI Jq command
 
 ## Filter array of objects based on field matching value
 

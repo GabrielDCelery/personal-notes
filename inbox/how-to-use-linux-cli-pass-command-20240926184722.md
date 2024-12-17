@@ -1,12 +1,12 @@
 ---
-title: Useful pass commands
+title: How to use Linux CLI pass command
 author: GaborZeller
 date: 2024-09-26T18-47-22Z
-tags:
+tags: linux
 draft: true
 ---
 
-# Useful pass commands
+# How to use Linux CLI pass command
 
 Under the hood pass uses gpg to generate passwords so we need a key pair, so `gpg` is a pre-requisite.
 
