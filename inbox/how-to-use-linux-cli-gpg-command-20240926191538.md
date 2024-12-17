@@ -1,12 +1,12 @@
 ---
-title: Useful gpg commands
+title: How to use Linux CLI gpg command
 author: GaborZeller
 date: 2024-09-26T19-15-38Z
-tags:
+tags: linux
 draft: true
 ---
 
-# Useful gpg commands
+# How to use Linux CLI gpg command
 
 ## Create gpg key
 
