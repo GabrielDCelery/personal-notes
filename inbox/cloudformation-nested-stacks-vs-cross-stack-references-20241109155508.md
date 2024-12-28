@@ -3,8 +3,8 @@ title: Cloudformation nested stacks vs cross-stack references
 author: GaborZeller
 date: 2024-11-09T15-55-08Z
 tags:
-	- aws
-	- cloudformation
+  - aws
+  - cloudformation
 draft: true
 ---
 
@@ -26,13 +26,13 @@ In Cloudformation there is a resource called `Stack` that is treated like any ot
 
 ```yaml
 ChildStack:
-	Type: AWS:Cloudformation:Stack
-	Properties:
-		TemplateURL: https://somelocation.com/template.yaml
-		Parameters:
-			Param1: Ref! SomeParam1
-			Param2: Ref! SomeParam2
-			Param3: Ref! SomeParam3
+  Type: AWS:Cloudformation:Stack
+  Properties:
+    TemplateURL: https://somelocation.com/template.yaml
+    Parameters:
+      Param1: Ref! SomeParam1
+      Param2: Ref! SomeParam2
+      Param3: Ref! SomeParam3
 ```
 
 ### How to pass around parameters across nested stacks
@@ -57,11 +57,11 @@ To use it you use the `Fn::ImportValue` function (as opposed to Ref).
 
 ```yaml
 Outputs:
-	SHAREDVPCID:
-		Description: Shared VPC ID
-		Value: !Ref VPC
-		Export:
-			Name: SHAREDVPCID
+  SHAREDVPCID:
+    Description: Shared VPC ID
+    Value: !Ref VPC
+    Export:
+      Name: SHAREDVPCID
 ```
 
 The above can be used by an other stack by using `!ImportValue SHAREDVPCID`
