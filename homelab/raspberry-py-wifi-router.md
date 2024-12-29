@@ -41,7 +41,7 @@ In terms of settings was using the `custom image` option and used the `default s
 
 After setting up the Pi I connected to it using the hub and an ethernet cable. The Pi was automatically handing out an IP address via DHCP which I verified via `ipconfig` using the `Command Prompt`, but had it not worked I would have edited the network card's settings via the `Network and sharing center`, select the network card, `Properties`, find `Internet Protocol Version 4` and change the settings from `Obtain IP address automatically` to `Use the following IP address`.
 
-```s
+```sh
 IP Address: 192.168.1.10 (or some valid static IP)
 Subnet Mask: 255.255.255.0
 Default Gateway: 192.168.1.1
