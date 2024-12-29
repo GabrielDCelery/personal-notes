@@ -22,3 +22,4 @@
 - [The Logfile Navigator | The Logfile Navigator, lnav for short, is an advanced log file viewer for the small-scale.](https://lnav.org) <!-- TAGS: logs -->
 - [Josean Martinez](https://www.josean.com)
 - [H.264 is magic: a technical walkthrough of a remarkable technology.](https://sidbala.com/h-264-is-magic)
+- [Power Supply Calculator - PSU Calculator | OuterVision](https://outervision.com/power-supply-calculator)
