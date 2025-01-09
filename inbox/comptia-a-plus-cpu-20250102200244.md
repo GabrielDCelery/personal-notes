@@ -29,9 +29,9 @@ The most important parts of the CPU:
 
 ## CPU and motherboard
 
-- System crystal
-	- its a quartz oscillator on the motherboard that acts as a conductor for the devices connected to the computer
-	- the signal it sends gets adjusted by a `clock chip` so it can speed up the signal to accomodate `multiple CPUs`
+The system crystal is a quartz oscillator on the motherboard that acts as a conductor for the devices connected to the computer. The signal it sends gets adjusted by a `clock chip` so it can speed up the signal to accomodate `multiple CPUs`.
+
+For example thw motherboard might operate on a `100MHz` frequency and sends a multiplier up to `x32` to accomodate a `3.2GGz CPU`.
 
 ## CPU and RAM
 
