@@ -41,6 +41,12 @@ pass generate <passwordname> # will auto generate a password
 pass generate <passwordnamewithnamespace>
 ```
 
+## Rename password
+
+```sh
+pass mv <oldpath> <newpath>
+```
+
 ## Adding metadata to passwords
 
 ```sh
