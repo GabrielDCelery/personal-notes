@@ -57,9 +57,11 @@ poetry install # This will install your dependencies
 ```
 
 ```sh
-poetry env use python3.11 # If you want to use a specific version of python
+poetry shell # creates and runs virtual environment also automatically selects the python version set in the toml file
+poetry env use python3.11 # If you want to use a specific version of python, but this does not create a virtual environment
 ```
 
 - Poetry uses virtual environments to manage project dependencies
+- `shell` command allows to both create and run virtual environment 
 - `env use` command allows to specify which version to use for current project
 
