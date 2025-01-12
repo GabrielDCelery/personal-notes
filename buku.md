@@ -24,3 +24,5 @@
 - [H.264 is magic: a technical walkthrough of a remarkable technology.](https://sidbala.com/h-264-is-magic)
 - [Power Supply Calculator - PSU Calculator | OuterVision](https://outervision.com/power-supply-calculator)
 - [FFmpeg - Ultimate Guide | IMG.LY Blog](https://img.ly/blog/ultimate-guide-to-ffmpeg)
+- [DiskGenius: Data Recovery, Partition Manager, Backup & Disk Utilities](https://www.diskgenius.com) <!-- TAGS:  backup software, diskgenius, partition manager,data recovery software -->
+- [GitHub - shubhamgrg04/awesome-diagramming: A curated collection of diagramming tools used by leading software engineering teams](https://github.com/shubhamgrg04/awesome-diagramming)
