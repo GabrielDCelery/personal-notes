@@ -26,3 +26,5 @@
 - [FFmpeg - Ultimate Guide | IMG.LY Blog](https://img.ly/blog/ultimate-guide-to-ffmpeg)
 - [DiskGenius: Data Recovery, Partition Manager, Backup & Disk Utilities](https://www.diskgenius.com) <!-- TAGS:  backup software, diskgenius, partition manager,data recovery software -->
 - [GitHub - shubhamgrg04/awesome-diagramming: A curated collection of diagramming tools used by leading software engineering teams](https://github.com/shubhamgrg04/awesome-diagramming)
+- [Beej's Guides](https://beej.us/guide)
+- [A Short Guide to Open Source Licenses | by David Skaife | Nationwide Technology | Medium](https://medium.com/nationwide-technology/a-short-guide-to-open-source-licenses-cf5b1c329edd)
