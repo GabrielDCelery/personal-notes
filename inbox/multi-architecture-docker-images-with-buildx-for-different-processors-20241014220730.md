@@ -2,7 +2,7 @@
 title: Multi-architecture Docker images with BuildX for different processors
 author: GaborZeller
 date: 2024-10-14T22-07-30Z
-tags:
+tags: docker
 draft: true
 ---
 
