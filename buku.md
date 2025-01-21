@@ -1,41 +1,44 @@
-- [Unraid | Unleash Your Hardware](https://unraid.net)
-- [Home | Immich](https://immich.app)
-- [The Free Software Media System | Jellyfin](https://jellyfin.org)
-- [GitHub - juanfont/headscale: An open source, self-hosted implementation of the Tailscale control server](https://github.com/juanfont/headscale)
-- [Tailscale · Best VPN Service for Secure Networks](https://tailscale.com)
-- [Big-O Algorithm Complexity Cheat Sheet (Know Thy Complexities!) @ericdrowell](https://www.bigocheatsheet.com) <!-- TAGS: 2025jan20,algorithms -->
-- [Red Blob Games](https://www.redblobgames.com) <!-- TAGS: 2025jan20,algorithms,games,math -->
-- [Production Readiness Checklist](https://www-proxy.gruntwork.io/devops-checklist) <!-- TAGS: 2025jan20,aws,devops -->
-- [How to Build an End to End Production-Grade Architecture on AWS Part 1 | by Yoriyasu Yano | Gruntwork](https://blog.gruntwork.io/how-to-build-an-end-to-end-production-grade-architecture-on-aws-part-1-eae8eeb41fec) <!-- TAGS: 2025jan20,architecture,aws -->
-- [Event-Driven Architectures: Why Event-First Thinking Changes Everything | Confluent | UK](https://www.confluent.io/en-gb/blog/journey-to-event-driven-part-1-why-event-first-thinking-changes-everything) <!-- TAGS: 2025jan20,event-driven -->
-- [DataLemur - Ace the SQL & Data Science Interview](https://datalemur.com) <!-- TAGS: 2025jan20,sql -->
-- [Terminal Trove - The $HOME of all things in the terminal.](https://terminaltrove.com) <!-- TAGS: 2025jan20,cli,terminal -->
-- [GitHub - superfly/litefs: FUSE-based file system for replicating SQLite databases across a cluster of machines](https://github.com/superfly/litefs) <!-- TAGS: 2025jan20,sqlite -->
-- [GitHub - benbjohnson/litestream: Streaming replication for SQLite.](https://github.com/benbjohnson/litestream) <!-- TAGS: 2025jan20,sqlite -->
-- [GitHub - minio/minio: MinIO is a high-performance, S3 compatible object store, open sourced under GNU AGPLv3 license.](https://github.com/minio/minio) <!-- TAGS: 2025jan20,object-storage,s3 -->
-- [Excalidraw | Hand-drawn look & feel • Collaborative • Secure](https://excalidraw.com) <!-- TAGS: 2025jan20,diagram,whiteboard -->
-- [WireGuard: fast, modern, secure VPN tunnel](https://www.wireguard.com) <!-- TAGS: 2025jan20,vpn -->
-- [Linux System Administration Archives – devconnected](https://devconnected.com/category/linux-administration) <!-- TAGS: 2025jan20,devops,linux -->
-- [GitHub - MaartenGr/KeyBERT: Minimal keyword extraction with BERT](https://github.com/MaartenGr/KeyBERT) <!-- TAGS: 2025jan20,keyword,tag -->
-- [Aseprite - Animated sprite editor & pixel art tool](https://www.aseprite.org) <!-- TAGS: 2025jan20,game -->
-- [Tiled | Flexible level editor](https://www.mapeditor.org) <!-- TAGS: 2025jan20,game -->
-- [Excalidraw | Online whiteboard collaboration made easy](https://plus.excalidraw.com) <!-- TAGS: 2025jan20,documentation -->
-- [Obsidian - Sharpen your thinking](https://obsidian.md) <!-- TAGS: 2025jan20,notes -->
-- [Wireshark for BEGINNERS // Where to start with Wireshark - YouTube](https://www.youtube.com/watch?v=OU-A2EmVrKQ&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ) <!-- TAGS: 2025jan20,chris greer,free wireshark course,free wireshark training,getting started with wireshark,how to use wireshark,intro to wireshark,introduction to wireshark,network analysis,network analysis with wireshark,network security,network troubleshooting,tcp/ip analysis,wireshark,wireshark basics,wireshark class,wireshark course,wireshark for beginners,wireshark masterclass,wireshark tips,wireshark training,wireshark tutorial,wireshark tutorial 2021,youtube -->
-- [Note taking with Neovim and Obsidian - YouTube](https://www.youtube.com/watch?v=1Lmyh0YRH-w) <!-- TAGS: 2025jan20,camera phone,free,sharing,upload,video,video phone -->
-- [Zettelkasten for programmers - YouTube](https://www.youtube.com/watch?v=z9IgFRAVV9w) <!-- TAGS: 2025jan20,camera phone,free,sharing,upload,video,video phone -->
-- [The Logfile Navigator | The Logfile Navigator, lnav for short, is an advanced log file viewer for the small-scale.](https://lnav.org) <!-- TAGS: 2025jan20,logs -->
-- [Josean Martinez](https://www.josean.com) <!-- TAGS: 2025jan20 -->
-- [H.264 is magic: a technical walkthrough of a remarkable technology.](https://sidbala.com/h-264-is-magic) <!-- TAGS: 2025jan20 -->
-- [Power Supply Calculator - PSU Calculator | OuterVision](https://outervision.com/power-supply-calculator) <!-- TAGS: 2025jan20 -->
-- [FFmpeg - Ultimate Guide | IMG.LY Blog](https://img.ly/blog/ultimate-guide-to-ffmpeg) <!-- TAGS: 2025jan20 -->
-- [DiskGenius: Data Recovery, Partition Manager, Backup & Disk Utilities](https://www.diskgenius.com) <!-- TAGS: 2025jan20,backup software,data recovery software,diskgenius,partition manager -->
-- [GitHub - shubhamgrg04/awesome-diagramming: A curated collection of diagramming tools used by leading software engineering teams](https://github.com/shubhamgrg04/awesome-diagramming) <!-- TAGS: 2025jan20 -->
-- [Beej's Guides](https://beej.us/guide) <!-- TAGS: 2025jan20 -->
-- [A Short Guide to Open Source Licenses | by David Skaife | Nationwide Technology | Medium](https://medium.com/nationwide-technology/a-short-guide-to-open-source-licenses-cf5b1c329edd) <!-- TAGS: 2025jan20 -->
-- [Enterprise Phone System | 3CX](https://www.3cx.com/phone-system)
-- [Eweka | Usenet Access | Network Services](https://www.eweka.nl)
-- [NZBGet - Usenet downloader](https://nzbget.net) <!-- TAGS: nzb,nzbget,usenet -->
-- [Paperless-ngx](https://docs.paperless-ngx.com)
-- [Cisco Nexus Dashboard – Cloud Network Dashboard - Cisco](https://www.cisco.com/site/us/en/products/networking/cloud-networking/nexus-platform/index.html)
-- [Home | Immich](https://immich.app/)
+- [Big-O Algorithm Complexity Cheat Sheet (Know Thy Complexities!) @ericdrowell](https://www.bigocheatsheet.com) <!-- TAGS: 2025jan20,2025jan21,algorithms -->
+- [Red Blob Games](https://www.redblobgames.com) <!-- TAGS: 2025jan20,2025jan21,algorithms,games,math -->
+- [Production Readiness Checklist](https://www-proxy.gruntwork.io/devops-checklist) <!-- TAGS: 2025jan20,2025jan21,aws,devops -->
+- [How to Build an End to End Production-Grade Architecture on AWS Part 1 | by Yoriyasu Yano | Gruntwork](https://blog.gruntwork.io/how-to-build-an-end-to-end-production-grade-architecture-on-aws-part-1-eae8eeb41fec) <!-- TAGS: 2025jan20,2025jan21,architecture,aws -->
+- [Event-Driven Architectures: Why Event-First Thinking Changes Everything | Confluent | UK](https://www.confluent.io/en-gb/blog/journey-to-event-driven-part-1-why-event-first-thinking-changes-everything) <!-- TAGS: 2025jan20,2025jan21,event-driven -->
+- [DataLemur - Ace the SQL & Data Science Interview](https://datalemur.com) <!-- TAGS: 2025jan20,2025jan21,sql -->
+- [Terminal Trove - The $HOME of all things in the terminal.](https://terminaltrove.com) <!-- TAGS: 2025jan20,2025jan21,cli,terminal -->
+- [GitHub - superfly/litefs: FUSE-based file system for replicating SQLite databases across a cluster of machines](https://github.com/superfly/litefs) <!-- TAGS: 2025jan20,2025jan21,sqlite -->
+- [GitHub - benbjohnson/litestream: Streaming replication for SQLite.](https://github.com/benbjohnson/litestream) <!-- TAGS: 2025jan20,2025jan21,sqlite -->
+- [GitHub - minio/minio: MinIO is a high-performance, S3 compatible object store, open sourced under GNU AGPLv3 license.](https://github.com/minio/minio) <!-- TAGS: 2025jan20,2025jan21,object-storage,s3 -->
+- [Excalidraw | Hand-drawn look & feel • Collaborative • Secure](https://excalidraw.com) <!-- TAGS: 2025jan20,2025jan21,diagram,whiteboard -->
+- [WireGuard: fast, modern, secure VPN tunnel](https://www.wireguard.com) <!-- TAGS: 2025jan20,2025jan21,vpn -->
+- [Linux System Administration Archives – devconnected](https://devconnected.com/category/linux-administration) <!-- TAGS: 2025jan20,2025jan21,devops,linux -->
+- [GitHub - MaartenGr/KeyBERT: Minimal keyword extraction with BERT](https://github.com/MaartenGr/KeyBERT) <!-- TAGS: 2025jan20,2025jan21,keyword,tag -->
+- [Aseprite - Animated sprite editor & pixel art tool](https://www.aseprite.org) <!-- TAGS: 2025jan20,2025jan21,game -->
+- [Tiled | Flexible level editor](https://www.mapeditor.org) <!-- TAGS: 2025jan20,2025jan21,game -->
+- [Excalidraw | Online whiteboard collaboration made easy](https://plus.excalidraw.com) <!-- TAGS: 2025jan20,2025jan21,documentation -->
+- [Obsidian - Sharpen your thinking](https://obsidian.md) <!-- TAGS: 2025jan20,2025jan21,notes -->
+- [Wireshark for BEGINNERS // Where to start with Wireshark - YouTube](https://www.youtube.com/watch?v=OU-A2EmVrKQ&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ) <!-- TAGS: 2025jan20,2025jan21,chris greer,free wireshark course,free wireshark training,getting started with wireshark,how to use wireshark,intro to wireshark,introduction to wireshark,network analysis,network analysis with wireshark,network security,network troubleshooting,tcp/ip analysis,wireshark,wireshark basics,wireshark class,wireshark course,wireshark for beginners,wireshark masterclass,wireshark tips,wireshark training,wireshark tutorial,wireshark tutorial 2021,youtube -->
+- [Note taking with Neovim and Obsidian - YouTube](https://www.youtube.com/watch?v=1Lmyh0YRH-w) <!-- TAGS: 2025jan20,2025jan21,camera phone,free,sharing,upload,video,video phone -->
+- [Zettelkasten for programmers - YouTube](https://www.youtube.com/watch?v=z9IgFRAVV9w) <!-- TAGS: 2025jan20,2025jan21,camera phone,free,sharing,upload,video,video phone -->
+- [The Logfile Navigator | The Logfile Navigator, lnav for short, is an advanced log file viewer for the small-scale.](https://lnav.org) <!-- TAGS: 2025jan20,2025jan21,logs -->
+- [Josean Martinez](https://www.josean.com) <!-- TAGS: 2025jan20,2025jan21 -->
+- [H.264 is magic: a technical walkthrough of a remarkable technology.](https://sidbala.com/h-264-is-magic) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Power Supply Calculator - PSU Calculator | OuterVision](https://outervision.com/power-supply-calculator) <!-- TAGS: 2025jan20,2025jan21 -->
+- [FFmpeg - Ultimate Guide | IMG.LY Blog](https://img.ly/blog/ultimate-guide-to-ffmpeg) <!-- TAGS: 2025jan20,2025jan21 -->
+- [DiskGenius: Data Recovery, Partition Manager, Backup & Disk Utilities](https://www.diskgenius.com) <!-- TAGS: 2025jan20,2025jan21,backup software,data recovery software,diskgenius,partition manager -->
+- [GitHub - shubhamgrg04/awesome-diagramming: A curated collection of diagramming tools used by leading software engineering teams](https://github.com/shubhamgrg04/awesome-diagramming) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Beej's Guides](https://beej.us/guide) <!-- TAGS: 2025jan20,2025jan21 -->
+- [A Short Guide to Open Source Licenses | by David Skaife | Nationwide Technology | Medium](https://medium.com/nationwide-technology/a-short-guide-to-open-source-licenses-cf5b1c329edd) <!-- TAGS: 2025jan20,2025jan21 -->
+- [www.ipSpace.net](https://www.ipspace.net) <!-- TAGS: articles,history,main page,podcast/software gone wild,presentations/list,subscription/free,webinar roadmaps -->
+- [Unraid | Unleash Your Hardware](https://unraid.net) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Home | Immich](https://immich.app) <!-- TAGS: 2025jan20,2025jan21 -->
+- [The Free Software Media System | Jellyfin](https://jellyfin.org) <!-- TAGS: 2025jan20,2025jan21 -->
+- [GitHub - juanfont/headscale: An open source, self-hosted implementation of the Tailscale control server](https://github.com/juanfont/headscale) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Tailscale · Best VPN Service for Secure Networks](https://tailscale.com) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Enterprise Phone System | 3CX](https://www.3cx.com/phone-system) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Eweka | Usenet Access | Network Services](https://www.eweka.nl) <!-- TAGS: 2025jan20,2025jan21 -->
+- [NZBGet - Usenet downloader](https://nzbget.net) <!-- TAGS: 2025jan20,2025jan21,nzb,nzbget,usenet -->
+- [Paperless-ngx](https://docs.paperless-ngx.com) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Cisco Nexus Dashboard – Cloud Network Dashboard - Cisco](https://www.cisco.com/site/us/en/products/networking/cloud-networking/nexus-platform/index.html) <!-- TAGS: 2025jan20,2025jan21 -->
+- [Home | Immich](https://immich.app/) <!-- TAGS: 2025jan20,2025jan21 -->
+- [How To Configure Custom Connection Options for your SSH Client | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client)
+- [How to Set Up SSH Keys on Ubuntu 20.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-ubuntu-20-04)
