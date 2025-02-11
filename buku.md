@@ -42,3 +42,6 @@
 - [Home | Immich](https://immich.app/) <!-- TAGS: 2025jan20,2025jan21 -->
 - [How To Configure Custom Connection Options for your SSH Client | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-configure-custom-connection-options-for-your-ssh-client)
 - [How to Set Up SSH Keys on Ubuntu 20.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-set-up-ssh-keys-on-ubuntu-20-04)
+- [Environments with Nix Shell - Learning Nix pt 1 - sam.today](https://www.sam.today/blog/environments-with-nix-shell-learning-nix-pt-1)
+- [Understand how to use C libraries in Go, with CGO - DEV Community](https://dev.to/metal3d/understand-how-to-use-c-libraries-in-go-with-cgo-3dbn) <!-- TAGS:  coding, community, development, engineering, inclusive, programming, software, tutorial,go -->
+- [Bare-metal Kubernetes, Part I: Talos on Hetzner - Datavirke](https://datavirke.dk/posts/bare-metal-kubernetes-part-1-talos-on-hetzner)
