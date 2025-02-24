@@ -17,7 +17,7 @@ draft: true
 example:
 
 ```sql
-SELECT 
+SELECT
   CURRENT_DATE AS current_date,
   CURRENT_TIME AS current_time,
   CURRENT_TIMESTAMP AS current_timestamp
@@ -25,15 +25,15 @@ FROM messages
 LIMIT 1;
 ```
 
-| current_date    | current_time | current_timestamp |
-| --------------- | ------------ | ----------------- |
-| 08/27/2023 00:00:00  | 07:35:15.989933+00 | 08/27/2023 07:35:15 |
+| current_date        | current_time       | current_timestamp   |
+| ------------------- | ------------------ | ------------------- |
+| 08/27/2023 00:00:00 | 07:35:15.989933+00 | 08/27/2023 07:35:15 |
 
 ## Extracting parts from dates
 
 ```sql
-SELECT 
-  message_id, 
+SELECT
+  message_id,
   sent_date,
   EXTRACT(YEAR FROM sent_date) AS extracted_year,
   DATE_PART('year', sent_date) AS part_year,
@@ -56,12 +56,12 @@ LIMIT 3;
 ## Truncating dates
 
 ```sql
-SELECT 
+SELECT
   message_id,
   sent_date,
   DATE_TRUNC('month', sent_date) AS truncated_to_month,
   DATE_TRUNC('day', sent_date) AS truncated_to_day,
-  DATE_TRUNC('hour', sent_date) AS truncated_to_hour  
+  DATE_TRUNC('hour', sent_date) AS truncated_to_hour
 FROM messages
 LIMIT 3;
 ```
@@ -73,7 +73,7 @@ LIMIT 3;
 ## Adding and subracting intervals
 
 ```sql
-SELECT 
+SELECT
   message_id,
   sent_date,
   sent_date + INTERVAL '2 days' AS add_2days,
@@ -87,7 +87,7 @@ LIMIT 3;
 ## Formatting dates in SQL
 
 ```sql
-SELECT 
+SELECT
   message_id,
   sent_date,
   TO_CHAR(sent_date, 'YYYY-MM-DD"T"HH24:MI:SS.FF3') AS formatted_iso8601utc,
@@ -102,16 +102,16 @@ FROM messages
 LIMIT 3;
 ```
 
-| format            | output              |
-| ----------------- | ------------------- |
-| formatted_iso8601utc | 2022-08-03T04:43:00.000Z |
-| formatted_iso8601 | 2022-08-03 04:43:00 |
-| formatted_12hr | 2022-08-03 04:43:00 PM | 
-| formatted_longmonth | August 03rd, 2022 |
-| formatted_shortmonth | Aug 03, 2022 |
-| formatted_daymonthyear | 03 August 2022 |
-| formatted_dayofmonth | August |
-| formatted_dayofweek | Wednesday | 
+| format                 | output                   |
+| ---------------------- | ------------------------ |
+| formatted_iso8601utc   | 2022-08-03T04:43:00.000Z |
+| formatted_iso8601      | 2022-08-03 04:43:00      |
+| formatted_12hr         | 2022-08-03 04:43:00 PM   |
+| formatted_longmonth    | August 03rd, 2022        |
+| formatted_shortmonth   | Aug 03, 2022             |
+| formatted_daymonthyear | 03 August 2022           |
+| formatted_dayofmonth   | August                   |
+| formatted_dayofweek    | Wednesday                |
 
 ## Casting strings as dates and timestamps
 
@@ -119,7 +119,7 @@ LIMIT 3;
 - `::TIMESTAMP` or `TO_TIMESTAMP()` - casts date as date and time
 
 ```sql
-SELECT 
+SELECT
   sent_date,
   sent_date::DATE AS casted_date,
   TO_DATE('2023-08-27', 'YYYY-MM-DD') AS converted_to_date,
