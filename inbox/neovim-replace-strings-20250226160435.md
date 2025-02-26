@@ -19,3 +19,13 @@ Press `:` to start typing command in neovim then type the following.
 - g - global
 - I - case sensitive
 - c - prompt confirmation
+
+## Using \*
+
+1. Navigate over a word that you want to replace
+2. Press `*` (select word under visual cursos)
+3. Press `gn` (search forward for the last used search pattern)
+4. Press `c` to replace selection
+5. Type out replacement
+6. Press `n` to seach forward
+7. Press `.` to repeat last change
