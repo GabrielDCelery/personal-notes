@@ -1,12 +1,12 @@
 ---
-title: Managing project secrets
+title: Managing project secrets locally or at service level
 author: GaborZeller
 date: 2025-03-04T23-00-54Z
 tags:
 draft: true
 ---
 
-# Managing project secrets
+# Managing project secrets locally or at a service level
 
 1. Directory Structure:
 
