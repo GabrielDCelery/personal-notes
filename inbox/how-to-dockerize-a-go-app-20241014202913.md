@@ -3,8 +3,8 @@ title: How to Dockerize a go app
 author: GaborZeller
 date: 2024-10-14T20-29-13Z
 tags:
-	- docker
-	- go
+  - docker
+  - go
 draft: true
 ---
 

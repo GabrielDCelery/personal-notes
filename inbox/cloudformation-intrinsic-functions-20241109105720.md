@@ -2,9 +2,9 @@
 title: Cloudformation intrinsic functions
 author: GaborZeller
 date: 2024-11-09T10-57-20Z
-tags: 
-	- aws
-	- cloudformation
+tags:
+  - aws
+  - cloudformation
 draft: true
 ---
 
@@ -34,12 +34,12 @@ Example for using `Ref`:
 
 ```yaml
 Resources:
-	Instance:
-		Type: 'AWS:EC2:Instance'
-		Properties:
-			ImageId: !Ref LatestAmiId
-			InstanceType: 't3.micro'	
-			Keyname: 'A4L'
+  Instance:
+    Type: "AWS:EC2:Instance"
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: "t3.micro"
+      Keyname: "A4L"
 ```
 
 Example for using `Fn:GetAtt`
@@ -55,7 +55,7 @@ Outputs:
       - PublicDnsName
   WebsiteURL:
     Description: Website URL for EC2 Instance
-    Value: !Sub 'http://${MyInstance.PublicDnsName}'
+    Value: !Sub "http://${MyInstance.PublicDnsName}"
 ```
 
 ### Fn::GetAZs
@@ -66,7 +66,7 @@ These can be used to get a list of availabiliy zones. It is important to note th
 
 These can be used to work with lists.
 
-```
+```yaml
 AvailabilityZone: !Select [0, !GetAZs, '']
 
 !Split ['|', 'adam|bob|david']
@@ -85,25 +85,21 @@ The `Fn::Sub` function allows to replace values at runtime in a string that are 
 
 ### Fn::Cidr
 
-Returns an array of `CIDR address blocks`. Useful when you want to allocate subnets in a more automated way. It takes in the `IP block`, the `number of subnets you want to generate` and the `range of the subnet`. 
+Returns an array of `CIDR address blocks`. Useful when you want to allocate subnets in a more automated way. It takes in the `IP block`, the `number of subnets you want to generate` and the `range of the subnet`.
 
 ```yaml
 VPC:
-	Type: AWS::EC2::VPC
-	Properties:
-		CidrBlock: '10.16.0.0/16'
+  Type: AWS::EC2::VPC
+  Properties:
+    CidrBlock: "10.16.0.0/16"
 Subnet1:
-	Type: AWS::EC2::Subnet
-	Properties:
-		VpcId: !Ref VPC
-		CidrBlock: !Select ['0', !Cidr [ !GetAtt VPC.CidrBlock, 16, 12 ] ]
+  Type: AWS::EC2::Subnet
+  Properties:
+    VpcId: !Ref VPC
+    CidrBlock: !Select ["0", !Cidr [!GetAtt VPC.CidrBlock, 16, 12]]
 Subnet2:
-	Type: AWS::EC2::Subnet
-	Properties:
-		VpcId: !Ref VPC
-		CidrBlock: !Select ['1', !Cidr [ !GetAtt VPC.CidrBlock, 16, 12 ] ]
-
+  Type: AWS::EC2::Subnet
+  Properties:
+    VpcId: !Ref VPC
+    CidrBlock: !Select ["1", !Cidr [!GetAtt VPC.CidrBlock, 16, 12]]
 ```
-
-
-

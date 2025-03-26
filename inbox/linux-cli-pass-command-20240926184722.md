@@ -2,7 +2,8 @@
 title: Linux CLI pass command
 author: GaborZeller
 date: 2024-09-26T18-47-22Z
-tags: linux
+tags:
+  - linux-cli
 draft: true
 ---
 
@@ -14,14 +15,14 @@ Under the hood pass uses gpg to generate passwords so we need a key pair, so `gp
 
 ```sh
 pass init <gpgkeyid>
-pass init -p <storename> <gpgkeyid> # will initialise a named password store that will appear as a folder 
+pass init -p <storename> <gpgkeyid> # will initialise a named password store that will appear as a folder
 ```
 
 ## Show password store
 
 ```sh
 pass show # shows the layout the password store
-pass show <storenam> # works like pass but shows layout of specific store 
+pass show <storenam> # works like pass but shows layout of specific store
 ```
 
 ## Initialise password store as git repository
@@ -36,7 +37,7 @@ pass git init
 pass insert <passwordname> # will prompt for a password
 pass generate <passwordname> # will auto generate a password
 # passwords can be generated in a namespaced way,
-# e.g. pass generate github/personal which will create a github folder and the personal password inside it 
+# e.g. pass generate github/personal which will create a github folder and the personal password inside it
 # you can also do multiple levels of nesting e.g. pass generate aws/personal/account
 pass generate <passwordnamewithnamespace>
 ```
@@ -145,4 +146,3 @@ alias aws="AWS_ACCESS_KEY_ID=$(pass show aws/access_id) AWS_SECRET_ACCESS_KEY=$(
 # then use the command
 aws lambda list-functions --region=eu-west-2 # your aws command will execute the aliased command with the passwords
 ```
-

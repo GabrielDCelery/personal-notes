@@ -23,4 +23,3 @@ Which means we can not point the `naked apex` domain to an AWS service with the 
 It works pretty much the same way as a `CNAME` record, it can be used for normal records, but at the same time can also be used for naked/apex records.
 
 [!TIP] in general AWS recommends using ALIAS record for pointing to AWS services, they also incentivise by not charging for it
-
