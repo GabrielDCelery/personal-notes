@@ -18,11 +18,12 @@ As the first step the feature has to be enabled under the BIOS, the settings sho
 
 1. First check the network interfaces and whether they are WOL capable or not.
 
-Use the `ip` command to get a lits of 
+Use the `ip` command to get a lits of
 
 ```sh
 ip -c a
 ```
+
 Use the `ethtool` command to check the details of the network interface
 
 ```sh
@@ -69,3 +70,9 @@ You can also inspect the packets on the Linux machine using the following comman
 ```sh
  sudo tcpdump -nxXei any ether proto 0x0842 or udp port 9 2>/dev/null
 ```
+
+# Enable WOL on Windows
+
+Go into `Device Manager` then expand the `Network Adapters` section, find the network adapter you want to configure and click on `Properties`.
+
+Go to the `Power Management` tab then check both `Allow this device to wake the computer` and `Only allow a magic packet to wake the computer` boxes.
