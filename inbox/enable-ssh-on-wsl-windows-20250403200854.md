@@ -76,7 +76,8 @@ sudo vim /etc/systemd/system/ssh.socket.d/override.conf
 ```sh
 [Socket]
 ListenStream= # This is important for unsetting it first
-ListenStream=2200
+ListenStream=0.0.0.0:2200
+ListenStream=[::]:2200
 FreeBind=yes
 Accept=no
 ```
@@ -98,6 +99,35 @@ sudo systemct status ssh # To verify if we are indeed listening on 2200
 
 Run the following in PowerShell:
 
+Remove rule if it exists
+
 ```sh
-New-NetFirewallRule -Name "WSL SSH" -DisplayName "WSL SSH" -Direction Inbound -Protocol TCP -LocalPort 2200 -Action Allow
+Remove-NetFirewallRule -Name "WSL SSH" -ErrorAction SilentlyContinue
+```
+
+```sh
+New-NetFirewallRule -Name "WSL SSH" -DisplayName "WSL SSH" -Direction Inbound -Protocol TCP -LocalPort 2200 -Action Allow -Enabled True -Profile Any
+```
+
+## Configure WSL to accept connections from anywhere
+
+We have to make sure the WSL networking layer is not just exposing SSH to the Windows localhost but to all interfaces.
+
+```sh
+netsh interface portproxy delete v4tov4 listenport=2200
+netsh interface portproxy add v4tov4 listenport=2200 listenaddress=0.0.0.0 connectport=2200 connectaddress=127.0.0.1
+netstat -an | findstr "2200"
+
+# PS C:\WINDOWS\system32> netstat -an | findstr "2200"
+#   TCP    0.0.0.0:2200           0.0.0.0:0              LISTENING
+#   TCP    127.0.0.1:2200         0.0.0.0:0              LISTENING
+
+```
+
+## Troubleshoot issues
+
+```sh
+Get-NetFirewallRule -Name *ssh*
+
+netstat -an | findstr "2200"
 ```
