@@ -208,3 +208,91 @@ services:
 ```
 
 This structure allows for easy development, testing, and deployment while maintaining code reusability and container isolation.
+
+## How to install dependencies separately for scripts
+
+Yes, in Poetry (which your project is using based on the `pyproject.toml`), you can define optional dependency groups using the `[tool.poetry.group]` section. This allows you to organize dependencies that are only needed for specific scripts or purposes.
+
+Here's how you can modify your `pyproject.toml` to separate dependencies for your different scripts:
+
+```toml:pyproject.toml
+[project]
+name = "flesh_and_blood"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "GaborZeller",email = "gabriel.d.celery@gmail.com"}
+]
+packages = [
+    { include = "flesh_and_blood", from = "src" }
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    # Core dependencies that are always needed go here
+]
+
+[tool.poetry.group.scraping]
+optional = true
+dependencies = [
+    # Dependencies specific to image scraping go here
+    # For example:
+    # "requests",
+    # "beautifulsoup4",
+]
+
+[tool.poetry.group.training]
+optional = true
+dependencies = [
+    # Dependencies specific to model training go here
+    # For example:
+    # "torch",
+    # "numpy",
+    # "pandas",
+]
+
+[tool.poetry.scripts]
+scrape-images = "flesh_and_blood.scripts.scrape-images:main"
+train-model = "flesh_and_blood.scripts.train-model:main"
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
+```
+
+With this setup, you can:
+
+1. Install only core dependencies:
+
+```bash
+poetry install --without scraping --without training
+```
+
+2. Install with scraping dependencies:
+
+```bash
+poetry install --with scraping
+```
+
+3. Install with training dependencies:
+
+```bash
+poetry install --with training
+```
+
+4. Install everything:
+
+```bash
+poetry install --with scraping --with training
+```
+
+This approach has several benefits:
+
+- Keeps your environment lighter when you only need certain functionality
+- Makes it clearer which dependencies are needed for which features
+- Allows other developers to quickly understand the project structure
+- Reduces potential conflicts between dependencies that are only needed for specific tasks
+
+You can add more groups as needed, and each group can have its own set of dependencies that are only installed when explicitly requested.
+
+**Generation complete!** Please review the code suggestions above.
