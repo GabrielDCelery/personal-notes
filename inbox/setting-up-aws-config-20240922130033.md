@@ -8,6 +8,32 @@ draft: true
 
 # Setting up aws config
 
+## Using SSO and IAM Identity Center
+
+```sh
+[default]
+cli_pager =
+region=eu-west-2
+output = json
+
+[sso-session sso-gz]
+sso_region = eu-west-2
+sso_start_url = https://gz.awsapps.com/start
+
+[profile gz-management]
+credentials_profile = default
+sso_session = sso-gz
+sso_account_id = 111111111111
+sso_role_name = AdministratorAccess
+
+[profile gz-sandbox]
+credentials_profile = default
+sso_session = sso-gz
+sso_account_id = 222222222222
+sso_role_name = AdministratorAccess
+
+```
+
 ## IAM user with an access key and security key
 
 ```sh
