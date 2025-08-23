@@ -46,3 +46,17 @@ echo "Public key: ${DOMAIN}.pub"
 echo "CSR: ${DOMAIN}.csr"
 echo -e "\nYou can now submit ${DOMAIN}.csr to your chosen Certificate Authority."
 ```
+
+# Generate self signed certificate
+
+1. Generate private key
+
+openssl genrsa -out server.key 2048
+
+2. Create certificate signing request
+
+openssl req -new -key server.key -out server.csr
+
+3. Generate self-signed certificate
+
+openssl x509 -req -days 365 -in server.csr -signkey server.key -out server.crt
