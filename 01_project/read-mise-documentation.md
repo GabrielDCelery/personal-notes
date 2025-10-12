@@ -72,3 +72,26 @@ _.path = "./node_modules/.bin"
 ### Dependency management
 
 `mise ls` and `mise prune` are pretty useful commands
+
+### Post installation commands
+
+```toml
+[tools]
+node = { version = "22", postinstall = "corepack enable" }
+```
+
+### OS specific tool installations
+
+```toml
+[tools]
+# Only install on Linux and macOS
+ripgrep = { version = "latest", os = ["linux", "macos"] }
+# Only install on Windows
+"npm:windows-terminal" = { version = "latest", os = ["windows"] }
+```
+
+### Secret management
+
+Mise allows for storing encrypted secrets and can automatically decrypt them and load them into environment automatically
+
+[secret management using age and sops](https://mise.jdx.dev/environments/secrets/sops.html)
