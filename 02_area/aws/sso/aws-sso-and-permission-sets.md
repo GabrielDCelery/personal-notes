@@ -12,8 +12,8 @@ Learn more about how AWS permission sets work
 
 An IAM Identity Center permission set is essentially a template of AWS permissions that you can assign to users or groups in AWS IAM Identity Center (formerly AWS SSO).
 
-Think of it like this: instead of managing permissions directly in each AWS account, you create a permission set once that says "here's what someone in this role should be able to do" - it might contain policies that grant EC2 access, S3 read permissions, etc. Then you can assign that permission set to users across multiple AWS accounts in
-your organization.
+> [!INFO]
+> Think of it like this: instead of managing permissions directly in each AWS account, you create a permission set once that says "here's what someone in this role should be able to do" - it might contain policies that grant EC2 access, S3 read permissions, etc. Then you can assign that permission set to users across multiple AWS accounts in your organization.
 
 What makes it useful:
 
