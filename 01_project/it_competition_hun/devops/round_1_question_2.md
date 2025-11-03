@@ -1,0 +1,66 @@
+---
+title: "Devops round 1, question 2"
+date: 2025-11-03
+tags: ["devops", "docker"]
+---
+
+# Problem
+
+There is a process in the below csv that is used for crypto mining, find it.
+
+```csv
+Protocol,Local_Address,Foreign_Address,State,PID,Process_Name
+tcp,192.168.1.105:22,0.0.0.0:0,LISTEN,1523,sshd
+tcp,192.168.1.105:80,0.0.0.0:0,LISTEN,2341,nginx
+tcp,192.168.1.105:443,0.0.0.0:0,LISTEN,2341,nginx
+tcp,192.168.1.105:3306,0.0.0.0:0,LISTEN,1876,mysqld
+udp,192.168.1.105:53,0.0.0.0:0,LISTEN,945,systemd-resolve
+tcp,192.168.1.105:25,0.0.0.0:0,LISTEN,2134,postfix
+tcp,192.168.1.105:5432,0.0.0.0:0,LISTEN,1765,postgres
+tcp,192.168.1.105:8080,0.0.0.0:0,LISTEN,3421,apache2
+tcp,127.0.0.1:6379,0.0.0.0:0,LISTEN,1654,redis-server
+tcp,127.0.0.1:9000,0.0.0.0:0,LISTEN,2987,php-fpm
+tcp,192.168.1.105:111,0.0.0.0:0,LISTEN,832,rpcbind
+udp,192.168.1.105:111,0.0.0.0:0,LISTEN,832,rpcbind
+tcp,192.168.1.105:8000,0.0.0.0:0,LISTEN,4532,python3
+udp,192.168.1.105:123,0.0.0.0:0,LISTEN,721,chronyd
+tcp,192.168.1.105:22,192.168.1.1:54892,ESTABLISHED,1523,sshd
+tcp,192.168.1.105:22,192.168.1.15:62341,ESTABLISHED,1523,sshd
+tcp,192.168.1.105:443,93.184.216.34:52341,ESTABLISHED,2341,nginx
+tcp,192.168.1.105:443,172.217.14.206:48921,ESTABLISHED,2341,nginx
+tcp,192.168.1.105:8080,192.168.1.50:49234,ESTABLISHED,3421,apache2
+tcp,192.168.1.105:8080,192.168.1.67:51892,ESTABLISHED,3421,apache2
+tcp,192.168.1.105:3306,127.0.0.1:45678,ESTABLISHED,1876,mysqld
+tcp,192.168.1.105:3306,192.168.1.22:39845,ESTABLISHED,1876,mysqld
+tcp,127.0.0.1:6379,127.0.0.1:48921,ESTABLISHED,1654,redis-server
+tcp,127.0.0.1:6379,127.0.0.1:49102,ESTABLISHED,1654,redis-server
+tcp,192.168.1.105:5432,192.168.1.45:41234,ESTABLISHED,1765,postgres
+tcp,192.168.1.105:5432,192.168.1.89:52341,ESTABLISHED,1765,postgres
+tcp,192.168.1.105:52891,45.76.132.58:3333,ESTABLISHED,5294,kswapd0
+tcp,192.168.1.105:48234,104.238.221.47:3333,ESTABLISHED,5294,kswapd0
+tcp,192.168.1.105:51029,185.220.101.52:3333,ESTABLISHED,5294,kswapd0
+tcp,192.168.1.105:25,209.85.220.41:45892,ESTABLISHED,2134,postfix
+udp,192.168.1.105:123,216.239.35.0:123,ESTABLISHED,721,chronyd
+udp,192.168.1.105:123,216.239.35.4:123,ESTABLISHED,721,chronyd
+tcp,192.168.1.105:9000,127.0.0.1:52341,ESTABLISHED,2987,php-fpm
+tcp,192.168.1.105:9000,127.0.0.1:53124,ESTABLISHED,2987,php-fpm
+tcp,192.168.1.105:8000,192.168.1.78:44321,ESTABLISHED,4532,python3
+tcp,192.168.1.105:443,151.101.1.140:39841,ESTABLISHED,2341,nginx
+udp,192.168.1.105:54123,8.8.8.8:53,ESTABLISHED,945,systemd-resolve
+udp,192.168.1.105:44892,1.1.1.1:53,ESTABLISHED,945,systemd-resolve
+tcp,192.168.1.105:49234,192.168.1.100:445,ESTABLISHED,6234,smbd
+tcp,192.168.1.105:51289,52.84.170.71:443,ESTABLISHED,3892,curl
+tcp,192.168.1.105:38921,142.250.185.142:443,ESTABLISHED,4123,chrome
+tcp,192.168.1.105:47832,34.117.186.192:443,ESTABLISHED,4123,chrome
+
+```
+
+# Solution
+
+Probably the easies way is to sort the csv by processes and then eyeball the file.
+
+[CSVKIT](https://csvkit.readthedocs.io/en/latest/index.html) is a pretty useful tool when working with CSV files. Can be installed with pip.
+
+```sh
+cat ./data/network_connections.csv | csvgrep -c "State" -r "ESTABLISHED" | csvsort -c "Process_Name" | csvlook
+```
