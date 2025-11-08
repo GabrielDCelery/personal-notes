@@ -4,7 +4,7 @@ date: 2025-11-07
 tags: ["networking", "wireshark"]
 ---
 
-# Part 1
+# Part 1 - Basic layout and settings
 
 [Learn Wireshark! Tutorial for BEGINNERS](https://www.youtube.com/watch?v=OU-A2EmVrKQ&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=1)
 
@@ -58,3 +58,74 @@ How to capture packets using `tcpdump` or `dumpcap`
 - `SPAN` - port mirroring - sends duplicate of data passing through port to an other monitoring port (span port)
 
 [Everyone Should Have One of These - EASY Packet Capture!](https://www.youtube.com/watch?v=LPz3qKjUVvY) - pretty cool video on how to use a Netgear GS105E to mirror traffic
+
+# Part 5
+
+[How to Filter Traffic // Intro to Wireshark Tutorial // Lesson 5](https://www.youtube.com/watch?v=-HDpYR_QSFw&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=5)
+
+- capture filter - only capture specific type of traffic - has to be specified `BEFORE` starting the capture
+- display filter - filter down the already captured traffic - has to be specified `AFTER` starting the capture
+
+> [!TIP]
+> Right click on something you want to filter on and use "apply as filter" or "prepare as filter"
+
+`not (arp or ipv6 or ssdp)`
+`tcp.port in {80,443,8080}`
+
+# Part 6
+
+[Wireshark Tutorial // Lesson 6 // Name Resolution](https://www.youtube.com/watch?v=gfxxCBCKvMU&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=6)
+
+- In the preferences settings one can go to `Name resolution` and set which values we want to resolve
+- `Resolve network (IP) addresses` by default is unchecked but by setting it to true rather than just seeing IP addresses we can see actual DNS names
+
+> [!IMPORTANT]
+> When the name resolution feature is enabled the rest of the checkboxes below that setting determine how wireshark will attempt the resolution
+
+- Right clicking on an IP adress offers the `Edit Resolved Name` option which allows for manually setting the name
+
+- In the main menu `Statistics` -> `Resolved addressess` we can view the IP addresses that were resolved by wireshark
+
+# Part 7
+
+[Wireshark Tutorial - Lesson 7 // Using the Time Column](https://www.youtube.com/watch?v=SllJu5MdkAg&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=7)
+
+- The `View` -> `Time Display format` allows for changing the format of the time column
+- Right clicking on a specific time allows for `Set/Unset Time Reference` which allows for using the selected time as a reference point
+- `Edit` -> `Unset all time references` allows for resetting the view
+- When looking at a specific packet there is a `Timestamps` section that shows relevant time information `in relation with the chain of packets that belong to the same stream`
+
+> [!TIP]
+> The timestamps can also be applied as columns which allows for a great view of delta times in related streams (this can also be sorted to look for large delays)
+
+# Part 8
+
+[Reading PCAPs with Wireshark Statistics // Lesson 8 // Wireshark Tutorial](https://www.youtube.com/watch?v=ZNS115MPsO0&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=8)
+
+- Looking at a packet capture packet by packet is hard, this is where statistics is useful (to give us a high level view of what is happenning)
+- You can use the `Conversations` -> `Statistics` view to get a high level view
+  - example: go to the TCP section and order the view by packet count to find IPs that are potentially scanning the network (low packet count)
+  - example: sort traffic by transferred bytes
+- There is a neat trick to right click on the information that catches my eye then apply that traffic as a filter if I just want to see that specific traffic
+- The nice thing about filtering traffic at the IP level is that I can see all the types of traffic that was involved there (ICMP, TCP etc...)
+
+# Part 9 - How to pull files out from a capture
+
+[Extracting Files from PCAPs with Wireshark // Lesson 9 // Wireshark Tutorial](https://www.youtube.com/watch?v=Fn__yRYW6Wo&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=9)
+
+- Don't forget to pick a TPC packet, go to `Transmission Control Protocol` and right click on it, select `Protocol Preferences` -> `Allow Subdissector to reassemble TCP streamms`
+- In the top menu there is `Files` -> `Export Objects` (and then for example choose http)
+- This way we can extract images, executables, binaries (don't execute them!) from the TCP streams
+- There is also a neat trick to actually right click on the packet in the logs and select `Follow` -> `TCP Stream`
+
+# Part 10
+
+[Map IP Address Locations with Wireshark (Using GeoIP)](https://www.youtube.com/watch?v=IlVppluWTHw&list=PLW8bTPfXNGdC5Co0VnBK1yVzAwSSphzpJ&index=10)
+
+- We need to download the following databases [GeoLite Databases and Web Services](https://dev.maxmind.com/geoip/geolite2-free-geolocation-data/)
+  - GeoLite2 Country
+  - GeoLite2 City
+  - ASN
+- In order to import it to wireshark we can use `Preferences` -> `Name Resolution` -> `MaxMind database directories` which allows us to point a directory which stores the above mentioned `.mmdb` files
+- Once enabled that will allow for looking at IP packets and not just seeing the IP address, but also the `GeoIP`
+- The information can also be seen in `Statistics` -> `Endpoints` and on the bottom left there is also a `Map` feature to view the traffic on a map
