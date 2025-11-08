@@ -27,7 +27,7 @@ resource "<resource type>" "<resource name>" {
 # How to convert list of objects to a map
 
 ```tf
-variable "instance_object" {
+variable "instance_objects" {
   type = list(object({
     name = string
     enabled = bool
@@ -52,7 +52,7 @@ variable "instance_object" {
 
 
 resource "aws_instance" "by_object" {
-  for_each = { for inst in var.instance_object : inst.name => inst }
+  for_each = { for inst in var.instance_objects : inst.name => inst }
   ami = "ami-0b08bfc6ff7069aff"
   instance_type = each.value.instance_type
 
@@ -62,3 +62,7 @@ resource "aws_instance" "by_object" {
   }
 }
 ```
+
+# External sources
+
+[^1] [How to Use Terraform For_Each Meta-Argument](https://spacelift.io/blog/terraform-for-each)
