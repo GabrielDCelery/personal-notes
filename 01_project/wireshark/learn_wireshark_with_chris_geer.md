@@ -1,5 +1,5 @@
 ---
-title: "Wireshark tutorial part 1"
+title: "Learn Wireshark with Chris Geer"
 date: 2025-11-07
 tags: ["networking", "wireshark"]
 ---
