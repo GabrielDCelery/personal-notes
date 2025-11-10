@@ -644,3 +644,151 @@ Hardware:
 - CPU = Runs kernel code that does TCP
 
 In your Go UDP sender example, you're bypassing most of this because UDP has no connection state - the kernel just wraps your data in a UDP header and sends it. No handshake, no retransmits, no state tracking.
+
+# Where QUIC reordering is handled
+
+● Yes! QUIC handles packet reordering at the application layer (userspace), not in the kernel like TCP.
+
+The Key Difference:
+
+TCP (Kernel Space)
+
+┌─────────────────────────────┐
+│ Your Application │ ← Receives ordered data
+├─────────────────────────────┤
+│ Kernel (TCP Stack) │ ← Handles reordering here
+│ - Reorder packets │
+│ - Retransmit lost ones │
+│ - Manage state │
+├─────────────────────────────┤
+│ NIC │
+└─────────────────────────────┘
+
+QUIC (User Space)
+
+┌─────────────────────────────┐
+│ Your Application │
+├─────────────────────────────┤
+│ QUIC Library (userspace) │ ← Handles reordering HERE
+│ - Reorder packets │ (in your process)
+│ - Retransmit lost ones │
+│ - Manage streams │
+│ - ACKs, congestion ctrl │
+├─────────────────────────────┤
+│ Kernel (UDP only) │ ← Just passes raw packets
+│ - No reordering │
+│ - No state │
+├─────────────────────────────┤
+│ NIC │
+└─────────────────────────────┘
+
+Why This Matters:
+
+1. Easier to Update
+   TCP: Need OS kernel update → slow, risky
+   QUIC: Just update library → fast, safe
+
+2. Visible to Your Application
+   // With TCP - invisible, kernel handles it
+   conn, \_ := net.Dial("tcp", "example.com:443")
+   conn.Read(buf) // Already ordered by kernel
+
+// With QUIC - library handles it in your process
+session, _ := quic.Dial("example.com:443")
+stream, _ := session.OpenStream()
+stream.Read(buf) // Ordered by QUIC library (userspace)
+
+3. Per-Stream Independence
+
+QUIC can reorder packets independently per stream because it's in application code:
+
+QUIC Library in your process:
+┌──────────────────────────────┐
+│ Stream 1 reorder buffer: │
+│ [pkt1][pkt2][\_\_\_][pkt4] │ ← Missing pkt3, stream blocked
+├──────────────────────────────┤
+│ Stream 2 reorder buffer: │
+│ [pkt1][pkt2][pkt3][pkt4] │ ← Complete, deliver to app!
+├──────────────────────────────┤
+│ Stream 3 reorder buffer: │
+│ [pkt1][pkt2][pkt3] │ ← Complete, deliver to app!
+└──────────────────────────────┘
+
+Kernel UDP socket just sees:
+Packets coming in any order → pass to QUIC library
+
+What Kernel Does with UDP:
+
+Kernel UDP handling:
+
+1. Receive packet from NIC
+2. Check UDP checksum
+3. Look up destination port
+4. Put in socket receive queue
+5. Wake up application
+6. Done ✅ (no reordering!)
+
+The QUIC library then:
+QUIC library (in your app):
+
+1. Read UDP packet from kernel
+2. Decrypt packet
+3. Parse QUIC headers (packet #, stream ID, offset)
+4. Put data in correct stream's reorder buffer
+5. Check if stream has contiguous data
+6. If yes: deliver to application
+7. If no: wait for missing packets
+8. Send ACK frames back
+
+Example Flow:
+
+Packets arrive out of order:
+UDP socket receives: Pkt#4, Pkt#2, Pkt#1, Pkt#3
+
+Kernel passes to QUIC library: "Here are 4 UDP datagrams"
+
+QUIC library reorders based on packet numbers:
+┌─────────────────────────────────┐
+│ Receive Buffer: │
+│ Pkt#1 (stream 5, offset 0) │
+│ Pkt#2 (stream 5, offset 100) │
+│ Pkt#3 (stream 7, offset 0) │
+│ Pkt#4 (stream 5, offset 200) │
+└─────────────────────────────────┘
+↓
+QUIC reassembles per stream:
+Stream 5: [offset 0][offset 100][offset 200] ✅ Complete
+Stream 7: [offset 0] ✅ Complete
+
+Application reads Stream 5: Gets ordered data
+Application reads Stream 7: Gets ordered data
+
+Advantages:
+
+1. No kernel bottleneck
+
+- TCP reordering happens in kernel (shared resource)
+- QUIC reordering happens in your process (parallel)
+
+2. Custom logic possible
+   // QUIC libraries can add features without OS changes
+   quic.SetReorderingThreshold(custom_value)
+   quic.EnableCustomCongestionControl()
+
+3. Better debugging
+   // Can inspect QUIC state from your app
+   stats := stream.GetStats()
+   fmt.Println("Packets reordered:", stats.ReorderedPackets)
+
+Summary:
+
+| Layer            | TCP        | QUIC                            |
+| ---------------- | ---------- | ------------------------------- |
+| Reordering       | Kernel     | Application (userspace library) |
+| State management | Kernel     | Application (userspace library) |
+| Retransmissions  | Kernel     | Application (userspace library) |
+| What kernel does | Everything | Just UDP packet delivery        |
+
+QUIC = TCP-like features implemented in userspace on top of dumb UDP pipes.
+
+This is why QUIC can innovate faster - no need to update every OS kernel in the world!
