@@ -792,3 +792,174 @@ Summary:
 QUIC = TCP-like features implemented in userspace on top of dumb UDP pipes.
 
 This is why QUIC can innovate faster - no need to update every OS kernel in the world!
+
+# TCP vs UDP ports
+
+Port Number Format (Same)
+
+Both TCP and UDP use:
+
+- 16-bit port numbers (0-65535)
+- Same IP addressing (IPv4/IPv6)
+- Same reserved port conventions (0-1023 are privileged)
+
+But They're SEPARATE Namespaces
+
+Critical point: TCP port 80 and UDP port 80 are completely different things.
+
+TCP port 80: HTTP web server
+UDP port 80: Available (nothing standard uses it)
+
+These don't conflict - they're separate!
+
+Visual Representation:
+
+Your Computer:
+┌─────────────────────────────────────────┐
+│ IP Address: 192.168.1.100 │
+│ │
+│ TCP Ports: │
+│ ├─ :22 → SSH server │
+│ ├─ :80 → HTTP server │
+│ ├─ :443 → HTTPS server │
+│ └─ :54321 → Your app's TCP connection │
+│ │
+│ UDP Ports: (SEPARATE!) │
+│ ├─ :53 → DNS resolver │
+│ ├─ :123 → NTP time sync │
+│ ├─ :42069 → Your UDP listener │
+│ └─ :54321 → Your app's UDP connection │
+└─────────────────────────────────────────┘
+
+Notice: TCP :54321 and UDP :54321 can coexist!
+
+Socket Identification (5-Tuple)
+
+A connection/socket is uniquely identified by:
+
+TCP Socket:
+(Protocol, Source IP, Source Port, Dest IP, Dest Port)
+(TCP, 192.168.1.100, 54321, 93.184.216.34, 80)
+
+UDP Socket:
+(Protocol, Source IP, Source Port, Dest IP, Dest Port)
+(UDP, 192.168.1.100, 54321, 8.8.8.8, 53)
+
+Different protocols → different sockets, even with same ports!
+
+Real Example:
+
+# Both can run simultaneously:
+
+nc -l -t 8080 # TCP listener on port 8080
+nc -l -u 8080 # UDP listener on port 8080 (SAME port number!)
+
+Kernel's view:
+┌──────────────────────────────────┐
+│ TCP Connection Table: │
+│ - 0.0.0.0:8080 LISTEN │
+└──────────────────────────────────┘
+
+┌──────────────────────────────────┐
+│ UDP Socket Table: │
+│ - 0.0.0.0:8080 (bound) │
+└──────────────────────────────────┘
+
+These are separate tables in the kernel!
+
+Port Assignment:
+
+When you don't specify a local port:
+
+// TCP - kernel assigns from ephemeral range
+conn, \_ := net.Dial("tcp", "example.com:80")
+// Might get: 192.168.1.100:54321 → 93.184.216.34:80
+
+// UDP - kernel assigns from SAME ephemeral range
+conn, \_ := net.Dial("udp", "example.com:53")
+// Might get: 192.168.1.100:54322 → 93.184.216.34:53
+
+// But they could both use 54321 if assigned at different times!
+
+Common Confusion:
+
+❌ WRONG: "Port 80 is taken by TCP, so UDP can't use it"
+✅ RIGHT: "TCP port 80 and UDP port 80 are independent"
+
+❌ WRONG: "Close TCP socket to free port for UDP"
+✅ RIGHT: "TCP and UDP can use same port simultaneously"
+
+Well-Known Ports (Different Uses):
+
+| Port | TCP Usage          | UDP Usage             |
+| ---- | ------------------ | --------------------- |
+| 53   | DNS zone transfers | DNS queries (primary) |
+| 80   | HTTP web traffic   | Rarely used           |
+| 443  | HTTPS web traffic  | QUIC/HTTP3            |
+| 22   | SSH                | Rarely used           |
+| 123  | Rarely used        | NTP time sync         |
+| 161  | SNMP               | SNMP (both!)          |
+
+In Your UDP Sender Example:
+
+// UDP connection
+remoteUDPAddr, _ := net.ResolveUDPAddr("udp4", "localhost:42069")
+conn, _ := net.DialUDP("udp4", nil, remoteUDPAddr)
+
+What happens:
+
+1. Kernel assigns ephemeral UDP port (e.g., 54321)
+2. Creates UDP socket: (UDP, your_ip, 54321, 127.0.0.1, 42069)
+3. Port 54321 for TCP is still available if needed!
+
+# You could simultaneously:
+
+# Terminal 1
+
+nc -l -u 42069 # UDP listener
+
+# Terminal 2
+
+nc -l -t 42069 # TCP listener (SAME port!)
+
+# Both work! Different protocols = different namespaces
+
+Packet Headers Show Protocol:
+
+IP Header identifies protocol:
+IP Packet Header:
+┌──────────────────────────────┐
+│ Protocol Field: 6 → TCP │
+│ Protocol Field: 17 → UDP │
+└──────────────────────────────┘
+
+So when a packet arrives:
+
+1. NIC receives packet
+2. Kernel reads IP header protocol field
+3. If Protocol=6: Look up in TCP connection table
+4. If Protocol=17: Look up in UDP socket table
+5. Different tables → no conflict!
+
+Summary:
+
+Same:
+
+- Port number format (16-bit, 0-65535)
+- IP addressing
+- Ephemeral port range (typically 32768-60999)
+
+Different:
+
+- Completely separate namespace
+- TCP port 80 ≠ UDP port 80
+- Can bind both simultaneously
+- Kernel maintains separate tables
+
+Think of it like:
+Building with two separate elevators:
+
+- TCP Elevator: Floors 1-65535
+- UDP Elevator: Floors 1-65535
+
+Floor 42 in TCP elevator ≠ Floor 42 in UDP elevator
