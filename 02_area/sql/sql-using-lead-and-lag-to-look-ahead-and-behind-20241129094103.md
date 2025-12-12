@@ -19,7 +19,7 @@ These are window functions that are desinged to analyze time series data. The go
 LEAD(column_name, offset) OVER (  -- Compulsory expression
   PARTITION BY partition_column -- Optional expression
   ORDER BY order_column) -- Compulsory expression
-  
+
 LAG(column_name, offset) OVER ( -- Compulsory expression
   PARTITION BY partition_column -- Optional expression
   ORDER BY order_column) -- Compulsory expression
@@ -37,6 +37,3 @@ FROM stock_prices
 WHERE EXTRACT(YEAR FROM date) = 2023
   AND ticker = 'GOOG';
 ```
-
-
-

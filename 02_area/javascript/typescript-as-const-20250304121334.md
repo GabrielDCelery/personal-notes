@@ -12,9 +12,9 @@ draft: true
 
 ```typescript
 const journeyHelperMap = {
-  [JourneySource.APP]: JourneyAppTickerDDBFactModelHelper,
-  [JourneySource.DEVICE]: JourneyDeviceTickerDDBFactModelHelper,
-  [JourneySource.TRAKM8]: JourneyTrakm8TickerDDBFactModelHelper,
+  [JourneySource.APP]: JourneyAppDDBFactModelHelper,
+  [JourneySource.DEVICE]: JourneyDeviceDDBFactModelHelper,
+  [JourneySource.VENDOR]: JourneyVendorDDBFactModelHelper,
 } as const;
 ```
 
@@ -30,12 +30,12 @@ WITHOUT `as const`:
 
 ```typescript
 const journeyModelHelperMap = {
-    [JourneySource.APP]: JourneyAppTickerDDBFactModelHelper
+    [JourneySource.APP]: JourneyAppDDBFactModelHelper
 };
 
 // TypeScript infers this as:
 {
-    [key: string]: typeof JourneyAppTickerDDBFactModelHelper
+    [key: string]: typeof JourneyAppDDBFactModelHelper
 }
 // The properties are mutable
 // The values are inferred as their general type
@@ -45,12 +45,12 @@ WITH `as const`:
 
 ```typescript
 const journeyModelHelperMap = {
-    [JourneySource.APP]: JourneyAppTickerDDBFactModelHelper
+    [JourneySource.APP]: JourneyAppDDBFactModelHelper
 } as const;
 
 // TypeScript infers this as:
 {
-    readonly [JourneySource.APP]: typeof JourneyAppTickerDDBFactModelHelper
+    readonly [JourneySource.APP]: typeof JourneyAppDDBFactModelHelper
 }
 // The properties are read-only
 // The values are treated as specific literal types

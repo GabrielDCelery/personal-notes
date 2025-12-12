@@ -11,5 +11,5 @@ draft: true
 ## Do nothing
 
 ```sql
-INSERT INTO ticker.speed_events_osm (somefield,) VALUES ($1) ON CONFLICT DO NOTHING`;
+INSERT INTO sometable.speed_events_osm (somefield,) VALUES ($1) ON CONFLICT DO NOTHING`;
 ```

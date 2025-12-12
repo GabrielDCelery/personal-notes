@@ -23,8 +23,8 @@ const ModelHelper =
 
 ```typescript
 {
-    readonly Cancellation: typeof DrivingSpeedingCancellationTickerDDBFactModelHelper;
-    readonly Scored: typeof DrivingSpeedingScoredTickerDDBFactModelHelper;
+    readonly Cancellation: typeof DrivingSpeedingCancellationDDBFactModelHelper;
+    readonly Scored: typeof DrivingSpeedingScoredDDBFactModelHelper;
 }
 ```
 
