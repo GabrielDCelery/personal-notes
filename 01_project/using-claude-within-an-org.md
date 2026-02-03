@@ -7,7 +7,7 @@ tags:
 
 # The problem
 
-Wanted to figure out how Claude is worth using within an organization.
+Wanted to figure out how Claude is worth using within an organization and how the actual distribution of it would like withing the org.
 
 # The answers
 
@@ -89,3 +89,16 @@ These two are not the same (spaces matter)
 "Bash(curl *)",
 "Bash(curl*)",
 ```
+
+## Remote AI agent
+
+One approach we can take is to only allow developers to interact with a "remote agent" and deny local agent actions. This is going to need some testing to see how it works in practice because Claude Code does not natively support this.
+
+The potential tools we have found so far are:
+
+A. Custom MCP server (e.g. `claude mcp serve --port 8080 --tools "Bash,Read"`)
+B. Claude Code on Web (though you can't limit claude code to ONLY use this and nothing else)
+
+1. Use a `managed-settings.json` to limit local use
+2. Prevent people messing with the managed settings (NinjaOne?)
+3. Figure out how to set up permissions and connection
