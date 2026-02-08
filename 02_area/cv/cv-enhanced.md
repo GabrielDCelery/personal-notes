@@ -112,7 +112,7 @@ Maintained internal admin tools and client websites. Worked on both new builds a
 
 ### Side projects
 
-A collection of some of the projects I have worked on, including the languages and tools used during development. https://github.com/GabrielDCelery
+A collection of some of the projects I have worked on, including the languages and tools used during development: https://github.com/GabrielDCelery
 
 - **Homelab** - Kubernetes cluster with Terraform/Ansible provisioning, hybrid cloud-on-prem networking using DigitalOcean
 - **1 Billion Row Challenge** - TypeScript implementation focusing on performance optimization, managed to process a billion records in 10 seconds
