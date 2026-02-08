@@ -1,8 +1,14 @@
+<< redacted name of candidate >>
+<< redacted email >>
+<< redacted phone number >>
+https://github.com/GabrielDCelery
+<< redacted address >>
+
 # Curriculum Vitae
 
 ## Summary
 
-I'm a Senior Engineer at a telematics insurance company, leading and delivering **cloud-native** solutions through their entire lifecycle - _from design and planning to implementation and operations_ - with emphasis on automation, observability, and cost optimization.
+Senior Backend Engineer at a telematics insurance company. I lead backend projects end-to-end - scoping work with stakeholders, coordinating with external vendors, and guiding mid-to-junior engineers along the way. I'm hands-on with the implementation and like to work with my fellow engineers solving problems.
 
 ## Technical Expertise
 
@@ -12,12 +18,13 @@ I'm a Senior Engineer at a telematics insurance company, leading and delivering 
 | Cloud Platforms          | AWS, Cloudflare, Azure                           |
 | IaC & Config Mgmt        | CDK/Cloudformation, Terraform, Ansible           |
 | CICD                     | AWS Codepipeline, CircleCI, GitHub Actions       |
-| Containers/Orchestration | Docker, AWS ECS + ECR, Lambda                    |
+| Containers/Orchestration | Lambda, Docker, AWS ECS + ECR                    |
 | Security & Compliance    | Trivy, Grype, Syft                               |
 | Performance              | Hyperfine, Apache Benchmark                      |
+| Observability            | CloudWatch, X-Ray, Datadog                       |
+| Messaging                | SQS, SNS, EventBridge                            |
 | AI Integration & Tooling | Claude API, GitHub Copilot                       |
 | Source Control           | Git, GitHub                                      |
-| Collaboration & Design   | Jira, Lucidchart, Draw.io                        |
 | Productivity             | Neovim, Mise, AWS Vault, Zellij, Starship        |
 
 ---
@@ -35,17 +42,17 @@ I'm a Senior Engineer at a telematics insurance company, leading and delivering 
 
 **Product Development & Third-Party Integrations:**
 
-- Designed and implemented end-to-end claims processing system integrating with multiple third-party claims providers, policy management system, and Databricks data pipelines
-- Built real-time billing calculator system for Pay-per-mile insurance product, integrating third-party billing APIs
-- Did impact analysis and orchestrated API migration while
-- Led complete white-labeling initiative for product suite, delivering customizable branding across all customer touchpoints
+- Designed and built a claims processing system that ingests claims from three different third-party providers, policy management system, and feeds results into Databricks for analytics
+- Built the billing calculator and tracker for our pay-per-mile product - calculates costs in real-time and syncs with external billing APIs
+- Built of several new products, third party integrations and API migrations - scoped the impact, planned the project, worked on the implementation, coordinated the rollout
+- Led a white-labeling project so partners could rebrand our product
 
 **Infrastructure & Internal Tooling:**
 
-- Architected and maintained cloud-native infrastructure on AWS, optimizing for scalability, cost efficiency, and streamlined deployment workflows
-- Developed local development tooling to improve engineering productivity and workflow consistency
-- Conducted technical design, cost analysis, and project planning for journey processing pipeline redesign and data archival strategy
-- Developed automated internal tools serving cross-functional teams (Pricing, Underwriting, Fraud, Customer Support), reducing manual workload
+- Planned and worked on a complete redesign of our journey processing pipeline consuming 150000 journeys on a daily bases , including cost estimates and a data archival strategy
+- Maintained and improved our AWS infrastructure (ECS, Lambda, CDK). Set up CI/CD pipelines, internal networking and worked on cutting cloud costs
+- Built local dev tooling so the team could run services locally
+- Built internal tools for pricing, underwriting, fraud, and support teams to automate repetitive work
 
 ---
 
@@ -55,14 +62,14 @@ I'm a Senior Engineer at a telematics insurance company, leading and delivering 
 **Duration:** April 2018 - February 2020
 **Role:** Full Stack Developer
 
-Led end-to-end digital transformation projects, working with clients, developers, and designers to automate manual business processes from discovery through launch. Facilitated discovery sessions to map client workflows into automated process flows.
+Worked with clients to turn their manual processes into automated workflows. Ran discovery sessions to understand what they needed, then built and shipped the solution.
 
 **Key Achievements:**
 
-- Designed and implemented full-stack solutions including relational databases, RESTful APIs, and user interfaces in collaboration with design teams
-- Evaluated and integrated third-party services to extend platform capabilities and demonstrate system flexibility
-- Authored comprehensive unit and integration test suites to ensure code quality and reliability
-- Performed technical triage and root cause analysis for bugs, providing documented solutions to development team
+- Built full-stack solutions - databases, APIs, and frontend - working alongside designers
+- Integrated third-party services when clients needed features we didn't have built-in
+- Wrote unit and integration tests for the features we shipped
+- Debugged production issues and documented fixes for the team
 
 ---
 
@@ -75,41 +82,42 @@ Led end-to-end digital transformation projects, working with clients, developers
 - Web Developer (Nov. 2016 – Apr. 2018)
 - Junior Web Developer (Apr. 2016 – Nov. 2016)
 
-Maintained internal administrative applications and client-facing websites, delivering support across greenfield and brownfield projects from tender through completion.
+Maintained internal admin tools and client websites. Worked on both new builds and existing systems.
 
 **Key Achievements:**
 
-- Supported data analyst teams by maintaining and enhancing internally developed tools and modules
-- Developed RESTful APIs for survey data collection and processing applications
-- Built and extended automation modules for scheduled tasks and business processes
-- Integrated third-party visualization libraries to enhance data presentation capabilities
-- Designed optimized relational database schemas and implemented efficient query algorithms for improved response times
+- Kept the data team's internal tools running and added features when they needed them
+- Built REST APIs for survey data collection and processing
+- Built and extended automation scripts for scheduled tasks
+- Added charting libraries to make data easier to understand
+- Designed database schemas and sped up slow queries
 
 ---
 
-### Zeller & Zeller LLC. (B2B Administration)
+### Freelance work
 
 **Location:** Hungary
-**Duration:** December 2015 – April 2016
+**Duration:** August 2015 – April 2016
 **Role:** Freelance Developer
 
 **Key Achievements:**
 
-- Migrated administration system for 150+ customers and business partners from Excel spreadsheets to custom CMS, modernizing the company's digital infrastructure and website
-- Conducted workflow analysis and user research to inform application design and feature requirements
-- Developed full-stack administration application handling both frontend and backend components
-- Performed usability testing, identified interface issues, and implemented iterative improvements
+- Replaced Excel-based admin system (tracking 150+ customers) for one of the customers with a proper web app
+- Talked to clients and users to figure out what they actually needed
+- Built the full-stack app - frontend and backend
+- Tested the UI with real users and fixed what didn't work
+- Built their website and a simple CMS for posting news updates
+- Worked with the client to make sure it did what they needed
+- Added a blog feature using off-the-shelf libraries
 
----
+### Side projects
 
-### Baluswimbus LP. (Public transportation)
+A collection of some of the projects I have worked on, including the languages and tools used during development. https://github.com/GabrielDCelery
 
-**Location:** Hungary
-**Duration:** August 2015 – December 2015
-**Role:** Freelance Developer
+- **Homelab** - Kubernetes cluster with Terraform/Ansible provisioning, hybrid cloud-on-prem networking using DigitalOcean
+- **1 Billion Row Challenge** - TypeScript implementation focusing on performance optimization, managed to process a billion records in 10 seconds
+- **Codingame Challenges** - Programming AI bots that compete against other competitors, managed to finish in the top 5% twice
 
-**Key Achievements:**
+### Education
 
-- Established brand identity and web presence from scratch, implementing lightweight CMS for news and customer communications
-- Conducted iterative client consultations to ensure solution met business requirements
-- Designed and developed company website with integrated blogging functionality using external libraries
+Budapest University of Technology and Economics (2002-2008) / Civil Engineering
