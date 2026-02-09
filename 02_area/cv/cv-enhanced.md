@@ -40,19 +40,21 @@ Senior Backend Engineer at a telematics insurance company. I lead backend projec
 - Senior Backend Engineer (2023 - Present)
 - Backend Engineer (February 2020 - March 2023)
 
-**Product Development & Third-Party Integrations:**
+**Key Achievements:**
 
-- Designed and built a claims processing system that ingests claims from three different third-party providers, policy management system, and feeds results into Databricks for analytics
-- Built the billing calculator and tracker for our pay-per-mile product - calculates costs in real-time and syncs with external billing APIs
-- Built of several new products, third party integrations and API migrations - scoped the impact, planned the project, worked on the implementation, coordinated the rollout
-- Led a white-labeling project so partners could rebrand our product
+- Extended and enhanced our internal customer management system that coordinated 7 different workflows across 63,000 insurance policies used by our pricing, underwriting, fraud and support teams to automate repetitive work
 
-**Infrastructure & Internal Tooling:**
+- Designed and built fulfilment system that handled the issuing, tracking and labeling of daily 250-300 devices at the time of policy sale, renewal and faulty device replacements and integrated it with our email and push notification system so the customers were kept up-to-date on the status of their device
 
-- Planned and worked on a complete redesign of our journey processing pipeline consuming 150000 journeys on a daily bases , including cost estimates and a data archival strategy
-- Maintained and improved our AWS infrastructure (ECS, Lambda, CDK). Set up CI/CD pipelines, internal networking and worked on cutting cloud costs
-- Built local dev tooling so the team could run services locally
-- Built internal tools for pricing, underwriting, fraud, and support teams to automate repetitive work
+- Designed and built a near-real time claims processing system that ingested daily ~230 updates to claims from three different third-party providers and forwarded them to the policy management system and Databricks for pattern recognition and fraud prevention
+
+- Built the billing calculator and tracker for our pay-per-mile product - calculated costs for ~2,000 monthly journeys in near-real time and synced with external billing system for monthly bill generation
+
+- Planned and led a complete redesign of our journey processing pipeline migration, including cost estimates and a data archival strategy
+  - £150,000 yearly saving by migrating from proprietary map matching dataset to open source OSM
+  - Near-real time processing of 100,000 - 300,000 journeys per day
+  - Migration of 75 million (75TB) JSON files from S3 Standard costing ~£1400/month to ~£180/month by tarballing and zipping redundant dataset and introducing lifecycle rule to move 80% of the data to Glacier Deep Archive while retaining the ability to re-hydrate old journeys for compliance
+  - worked with data team to build data ingestion process so journeys could be analyzed in Databricks
 
 ---
 
@@ -66,10 +68,9 @@ Worked with clients to turn their manual processes into automated workflows. Ran
 
 **Key Achievements:**
 
-- Built full-stack solutions - databases, APIs, and frontend - working alongside designers
-- Integrated third-party services when clients needed features we didn't have built-in
-- Wrote unit and integration tests for the features we shipped
-- Debugged production issues and documented fixes for the team
+- Designed and built a temporary internal form builder tool that was used across ~20 clients to drive compliance processes while our main engineering team finished migrating our product's frontent from Django to React
+- Designed and built a bespoke dashboard and end-to-end API integration for one of the largest independent insurance brokerages to handle one of their re-insurance process
+- Attended to business meetings and discoveries to understand client needs and built automated processes, API and database integrations using the company's software
 
 ---
 
@@ -79,18 +80,17 @@ Worked with clients to turn their manual processes into automated workflows. Ran
 **Duration:** April 2016 - April 2018
 **Roles:**
 
-- Web Developer (Nov. 2016 – Apr. 2018)
+- Developer (Nov. 2016 – Apr. 2018)
 - Junior Web Developer (Apr. 2016 – Nov. 2016)
 
 Maintained internal admin tools and client websites. Worked on both new builds and existing systems.
 
 **Key Achievements:**
 
-- Kept the data team's internal tools running and added features when they needed them
-- Built REST APIs for survey data collection and processing
-- Built and extended automation scripts for scheduled tasks
-- Added charting libraries to make data easier to understand
-- Designed database schemas and sped up slow queries
+- Distributed and assisted installing ~100 telematics device in Taxis driving in London and after collecting the devices wrote the script to extract the driving data and plot them using Leaflet to analyze heatmap data of driving behaviour to derive insights
+- Created and ran regulary surveys across 500-1000 respondents and then extracted responses into internal PostgreSQL database for analysis
+- Assisted migration of PostgreSQL dataset of 200000 customer records for compliance reasons
+- Maintenance of office computers and server hosted in the office
 
 ---
 
