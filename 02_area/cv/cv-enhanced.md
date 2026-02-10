@@ -42,19 +42,19 @@ Senior Backend Engineer at a telematics insurance company. I lead backend projec
 
 **Key Achievements:**
 
+- Planned and led a complete redesign of our journey processing pipeline migration, including cost estimates and a data archival strategy
+  - £150,000 yearly saving by migrating from proprietary map matching dataset to open source OSM
+  - Near-real time processing of 100,000 - 300,000 journeys per day
+  - Migration of 75 million (75TB) JSON files from S3 Standard storage costing ~£1400/month to ~£180/month by tarballing and zipping redundant dataset and introducing lifecycle rules to move 80% of the data to Glacier Deep Archive while retaining the ability to re-hydrate old journeys for compliance
+  - worked with data team to build data ingestion process so journeys could be analyzed in Databricks
+
 - Extended and enhanced our internal customer management system that coordinated 7 different workflows across 63,000 insurance policies used by our pricing, underwriting, fraud and support teams to automate repetitive work
 
 - Designed and built fulfilment system that handled the issuing, tracking and labeling of daily 250-300 devices at the time of policy sale, renewal and faulty device replacements and integrated it with our email and push notification system so the customers were kept up-to-date on the status of their device
 
 - Designed and built a near-real time claims processing system that ingested daily ~230 updates to claims from three different third-party providers and forwarded them to the policy management system and Databricks for pattern recognition and fraud prevention
 
-- Built the billing calculator and tracker for our pay-per-mile product - calculated costs for ~2,000 monthly journeys in near-real time and synced with external billing system for monthly bill generation
-
-- Planned and led a complete redesign of our journey processing pipeline migration, including cost estimates and a data archival strategy
-  - £150,000 yearly saving by migrating from proprietary map matching dataset to open source OSM
-  - Near-real time processing of 100,000 - 300,000 journeys per day
-  - Migration of 75 million (75TB) JSON files from S3 Standard costing ~£1400/month to ~£180/month by tarballing and zipping redundant dataset and introducing lifecycle rule to move 80% of the data to Glacier Deep Archive while retaining the ability to re-hydrate old journeys for compliance
-  - worked with data team to build data ingestion process so journeys could be analyzed in Databricks
+- Built a billing calculator and tracker for our pay-per-mile product - calculated costs for ~2,000 monthly journeys in near-real time and synced with external billing system for monthly bill generation
 
 ---
 
@@ -68,7 +68,7 @@ Worked with clients to turn their manual processes into automated workflows. Ran
 
 **Key Achievements:**
 
-- Designed and built a temporary internal form builder tool that was used across ~20 clients to drive compliance processes while our main engineering team finished migrating our product's frontent from Django to React
+- Designed and built an internal form builder tool that was used across ~20 clients to drive compliance processes while our main engineering team finished migrating our product's frontend from Django to React
 - Designed and built a bespoke dashboard and end-to-end API integration for one of the largest independent insurance brokerages to handle one of their re-insurance process
 - Attended to business meetings and discoveries to understand client needs and built automated processes, API and database integrations using the company's software
 
