@@ -61,3 +61,36 @@ echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab
 # Watch how the swap space is being used
 watch -n 2 free -h
 ```
+
+## How to increase existing swap space
+
+```sh
+swapon --show
+# NAME      TYPE SIZE USED PRIO
+# /swap.img file   4G 3.5G   -2
+
+cat /proc/swaps
+# Filename                                Type            Size            Used            Priority
+# /swap.img                               file            4194300         3701932         -2
+
+# Steps to increase swap from 4GB to 32GB:
+
+# 1. Turn off swap
+sudo swapoff /swap.img
+
+# 2. Resize the swap file to 32GB
+sudo dd if=/dev/zero of=/swap.img bs=1G count=32 status=progress
+
+# 3. Set correct permissions
+sudo chmod 600 /swap.img
+
+# 4. Format it as swap
+sudo mkswap /swap.img
+
+# 5. Turn swap back on
+sudo swapon /swap.img
+
+# 6. Verify the new size
+ssh homelabdesktop free -h
+ssh homelabdesktop swapon --show
+```
