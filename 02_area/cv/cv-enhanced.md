@@ -109,7 +109,8 @@ Maintained internal admin tools and client-facing websites across greenfield and
 
 A collection of some of the projects I have worked on, including the languages and tools used during development: https://github.com/GabrielDCelery
 
-- **Homelab** - Kubernetes cluster with Terraform/Ansible provisioning, hybrid cloud-on-prem networking using DigitalOcean
+- **Homelab** - Hybrid infrastructure combining k3s (cloud) and Docker (on-prem GPU), provisioned with Terraform and Ansible
+- **Local AI Tools** - Document RAG and video summarization apps using Ollama and LangChain on homelab GPU
 - **1 Billion Row Challenge** - TypeScript implementation focusing on performance optimization, managed to process a billion records in 10 seconds
 - **Codingame Challenges** - Programming AI bots that compete against other competitors, managed to finish in the top 5% twice
 
