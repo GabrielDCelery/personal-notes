@@ -8,7 +8,7 @@ https://github.com/GabrielDCelery
 
 ## Summary
 
-Senior Backend Engineer at a telematics insurance company. I lead backend projects end-to-end - scoping work with stakeholders, coordinating with external vendors, and guiding mid-to-junior engineers along the way. I'm hands-on with the implementation and like to work with my fellow engineers solving problems.
+Senior Backend Engineer at a telematics insurance company. I lead backend projects end-to-end - scoping work with stakeholders, coordinating with external vendors, and guiding mid-to-junior engineers along the way. I stay hands-on and enjoy solving problems alongside the team.
 
 ## Technical Expertise
 
