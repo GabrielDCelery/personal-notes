@@ -1,6 +1,8 @@
 # What is this?
 
-My second brain. Tried many methods but the one that finally "clicked" for me and the one I actually ended up using on a regular basis was the [PARA](https://medium.com/practice-in-public/mastering-the-para-method-and-how-to-take-it-to-new-heights-d48afa1d13b0) method. There is also a great [YouTube video](https://www.youtube.com/watch?v=T6Mfl1OywM8) that introduces the concept.
+My **second brain**. I tried many methods, but PARA was the one that finally "clicked" and became part of my regular workflow.
+
+There a great [YouTube](https://www.youtube.com/watch?v=T6Mfl1OywM8) video that introduced me to the concept, but there is also this article [PARA guide](https://medium.com/practice-in-public/mastering-the-para-method-and-how-to-take-it-to-new-heights-d48afa1d13b0).
 
 ## What is PARA?
 
