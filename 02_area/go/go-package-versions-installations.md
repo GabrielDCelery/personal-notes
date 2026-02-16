@@ -6,10 +6,10 @@ title: Go package versions and installations
 
 1. Go Package Discovery Site (easiest)
 
-Visit https://pkg.go.dev/ and search for the package:
+Visit `https://pkg.go.dev/` and search for the package:
 
-- golangci-lint: https://pkg.go.dev/github.com/golangci/golangci-lint
-- migrate: https://pkg.go.dev/github.com/golang-migrate/migrate
+- golangci-lint: `https://pkg.go.dev/github.com/golangci/golangci-lint`
+- migrate: `https://pkg.go.dev/github.com/golang-migrate/migrate`
 
 The page shows:
 
@@ -21,8 +21,8 @@ The page shows:
 
 Check the releases page directly:
 
-- https://github.com/golangci/golangci-lint/releases
-- https://github.com/golang-migrate/migrate/releases
+- `https://github.com/golangci/golangci-lint/releases`
+- `https://github.com/golang-migrate/migrate/releases`
 
 Look at the tag names (e.g., v1.60.3, v4.19.1)
 
