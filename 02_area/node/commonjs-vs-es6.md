@@ -120,7 +120,57 @@ This controls what JavaScript features are used in the compiled output:
 | node16/node18/node20 | Locked to specific Node.js versions    | Use nodenext instead                                  |
 | preserve             | Don't transform imports at all         | Bundlers like Bun that handle it themselves           |
 
-## Additional issues
+### NodeNext vs EsNext
+
+`ESNext` = "I want to speak modern JavaScript"
+
+- Writing code using the newest JavaScript features
+- A bundler (like webpack/vite) or browser will understand
+- Can skip file extensions: import thing from './file'
+
+`NodeNext` = "I want to speak Node.js's special dialect"
+
+- Node.js has special rules about how files talk to each other
+- You MUST say the full filename: import thing from './file.js'
+- Node.js needs to know if you're using old-style or new-style imports
+
+#### Real Example
+
+With ESNext:
+
+```typescript
+// TypeScript lets you be lazy
+import { hello } from "./utils"; // ✅ Works (bundler figures it out)
+```
+
+With NodeNext:
+
+```typescript
+// Node.js makes you be explicit
+import { hello } from "./utils.js"; // ✅ You MUST write .js
+import { hello } from "./utils"; // ❌ ERROR! Where's the .js?
+```
+
+#### When to use each?
+
+Use ESNext when:
+
+- Making a website (React, Vue, etc.)
+- Using a bundler (webpack, vite, rollup)
+- "I don't care about Node.js specifically"
+
+Use NodeNext when:
+
+- Making a Node.js server or CLI tool
+- Publishing to npm
+- "My code will run directly in Node.js"
+
+The simplest rule:
+
+🟢 Building for Node.js? → Use NodeNext
+🔵 Building anything else? → Use ESNext
+
+## Additional issues and what lib solves
 
 There is also the added issue of what is it that typescript CAN compile and what is it that it CAN NOT.
 
@@ -143,6 +193,73 @@ Examples:
 
 > [!WARN]
 > so you will either need a `polyfil` or configure the `lib` property in `tsconfig.json`
+
+```ts
+// Without proper lib configuration
+const result = await fetch("https://api.example.com/data");
+const data = await result.json();
+
+document.getElementById("app")?.innerHTML = "Hello";
+```
+
+Issue: Does your environment have fetch? Does it have document? TypeScript needs to know!
+
+### Examples
+
+Browser application
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020", "DOM", "DOM.Iterable"]
+  }
+}
+```
+
+- ES2020: Standard JavaScript APIs (Promise, Map, Set, etc.)
+- DOM: Browser APIs (document, window, HTMLElement)
+- DOM.Iterable: Makes DOM collections iterable (NodeList, etc.)
+
+Node.js Application
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"]
+  }
+}
+```
+
+- No DOM - there's no document or window in Node.js
+- TypeScript will error if you try to use document.getElementById()
+
+Modern Node.js with fetch
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022"],
+    "types": ["node"]
+  }
+}
+```
+
+- Node 18+ has fetch built-in, but you may need @types/node for type definitions
+
+Library/Package (no runtime assumed)
+
+```json
+{
+  "compilerOptions": {
+    "target": "ES2020",
+    "lib": ["ES2020"]
+    // No DOM - works in both browser and Node.js
+  }
+}
+```
 
 ## Instead of guessing, use official presets
 
