@@ -822,7 +822,16 @@ The Go standard library itself uses the parameter-passing approach in many place
 
 ## Next Steps
 
-This lesson completes the core Go refresher series. For further depth:
+In [Lesson 11: I/O and Streaming](lesson-11-io-and-streaming.md), you'll learn:
+
+- The `io.Reader`/`io.Writer` contract and why partial reads are normal
+- Composing streams with `io.TeeReader`, `io.MultiReader`, `io.Pipe`, and `io.LimitReader`
+- When and how to use `bufio` for buffering
+- Streaming JSON with `json.Decoder` vs buffering with `json.Unmarshal`
+- HTTP body patterns: drain, close, and cap untrusted input
+- Writer close/flush gotchas with `bufio.Writer` and `gzip.Writer`
+
+For further depth on time specifically:
 
 - [Go Channels Deep Dive](../channels/) — 23-lesson series covering channel patterns exhaustively
 - [Go Primitives](../primitives/) — foundational Go data types and their performance characteristics
