@@ -49,11 +49,22 @@ Senior developers (2+ years Go experience) who need:
 | ------ | ----- | ------------ |
 | [09](lesson-09-module-system-and-toolchain.md) | Module System & Toolchain | `go.mod`, workspaces, build tags, `go vet`, `staticcheck` |
 
+### Data Structures & Internals
+
+| Lesson | Topic | Key Concepts |
+| ------ | ----- | ------------ |
+| [12](lesson-12-slices-maps-strings.md) | Slices, Maps & String Internals | Slice header, append aliasing, nil vs empty, map concurrency panic, rune vs byte |
+
 ### Standard Library Deep Dives
 
 | Lesson | Topic | Key Concepts |
 | ------ | ----- | ------------ |
 | [10](lesson-10-time-operations.md) | Time Operations | `time.Time`, monotonic vs wall clock, formatting, timezones, timers, testable time |
+| [11](lesson-11-io-and-streaming.md) | I/O and Streaming | `io.Reader`/`Writer` contract, partial reads, `io.Pipe`, `bufio`, streaming JSON, HTTP body patterns |
+| [13](lesson-13-http-server-patterns.md) | HTTP Server Patterns | Middleware, `ServeMux`, server timeouts, graceful shutdown, context propagation |
+| [14](lesson-14-reflection-and-struct-tags.md) | Reflection & Struct Tags | `reflect.Type`/`Value`, struct traversal, settability, tags, reflection vs generics |
+| [15](lesson-15-json-encoding.md) | JSON Encoding Deep Dive | `omitempty` gotchas, custom marshaling, `json.Number`, `RawMessage`, HTML escaping |
+| [16](lesson-16-database-sql.md) | database/sql Patterns | Connection pool config, `sql.Rows` lifecycle, transaction pattern, `sql.Null*` types |
 
 ## How to Use This Series
 
