@@ -571,20 +571,13 @@ go test -race ./...
 
 ---
 
-## Series Complete
+## Next Steps
 
-You've covered the nine core topics for senior Go interviews:
+In [Lesson 10: Time Operations](lesson-10-time-operations.md), you'll learn:
 
-| Lesson                                              | Topic                          |
-| --------------------------------------------------- | ------------------------------ |
-| [01](lesson-01-interfaces-and-type-system.md)       | Interfaces & the Type System   |
-| [02](lesson-02-error-handling-patterns.md)          | Error Handling Patterns        |
-| [03](lesson-03-goroutines-and-scheduler.md)         | Goroutines & the Scheduler     |
-| [04](lesson-04-sync-primitives-and-patterns.md)     | Sync Primitives & Patterns     |
-| [05](lesson-05-memory-model-and-escape-analysis.md) | Memory Model & Escape Analysis |
-| [06](lesson-06-context-and-cancellation.md)         | Context & Cancellation         |
-| [07](lesson-07-generics.md)                         | Generics                       |
-| [08](lesson-08-testing-and-benchmarking.md)         | Testing & Benchmarking         |
-| [09](lesson-09-module-system-and-toolchain.md)      | Module System & Toolchain      |
-
-**Channels** are covered separately in the [`go/channels/`](../channels/) series.
+- `time.Time` internals and why `==` is wrong for time comparison
+- Monotonic vs wall clock and where it trips people up in tests
+- Go's reference-time formatting system and when to use `RFC3339`
+- Timezone traps including the `time/tzdata` embed for minimal containers
+- Timer and ticker gotchas: `time.After` leaks, `Reset` races, dropped ticks
+- Patterns for making time-dependent code testable

@@ -49,6 +49,12 @@ Senior developers (2+ years Go experience) who need:
 | ------ | ----- | ------------ |
 | [09](lesson-09-module-system-and-toolchain.md) | Module System & Toolchain | `go.mod`, workspaces, build tags, `go vet`, `staticcheck` |
 
+### Standard Library Deep Dives
+
+| Lesson | Topic | Key Concepts |
+| ------ | ----- | ------------ |
+| [10](lesson-10-time-operations.md) | Time Operations | `time.Time`, monotonic vs wall clock, formatting, timezones, timers, testable time |
+
 ## How to Use This Series
 
 Work through lessons in order — later lessons assume knowledge from earlier ones (especially concurrency concepts). Each lesson takes 30–60 minutes and includes:
