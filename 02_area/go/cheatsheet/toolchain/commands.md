@@ -85,6 +85,7 @@ go build -o myapp .
 go build -ldflags "-X main.version=1.2.3 -X main.commit=$(git rev-parse --short HEAD)" -o myapp .
 
 # Cross-compile
+# check go doc runtime
 GOOS=linux GOARCH=amd64 go build -o myapp-linux .
 GOOS=darwin GOARCH=arm64 go build -o myapp-darwin .
 GOOS=windows GOARCH=amd64 go build -o myapp.exe .

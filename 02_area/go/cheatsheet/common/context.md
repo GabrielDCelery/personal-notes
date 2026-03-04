@@ -2,14 +2,14 @@
 
 ## Quick Reference
 
-| Use case              | Method                                 |
-| --------------------- | -------------------------------------- |
-| Create root context   | `context.Background()`                 |
-| With timeout          | `context.WithTimeout(ctx, duration)`   |
-| With deadline         | `context.WithDeadline(ctx, time)`      |
-| With cancel           | `context.WithCancel(ctx)`              |
-| With value            | `context.WithValue(ctx, key, val)`     |
-| Check cancellation    | `ctx.Done()` channel / `ctx.Err()`     |
+| Use case            | Method                               |
+| ------------------- | ------------------------------------ |
+| Create root context | `context.Background()`               |
+| With timeout        | `context.WithTimeout(ctx, duration)` |
+| With deadline       | `context.WithDeadline(ctx, time)`    |
+| With cancel         | `context.WithCancel(ctx)`            |
+| With value          | `context.WithValue(ctx, key, val)`   |
+| Check cancellation  | `ctx.Done()` channel / `ctx.Err()`   |
 
 ## Basics
 

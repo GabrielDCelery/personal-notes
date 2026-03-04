@@ -17,6 +17,7 @@
 ### 1. Basic server (simplest)
 
 ```go
+// uses the DefaultServeMux multiplexer (router)
 http.HandleFunc("/health", func(w http.ResponseWriter, r *http.Request) {
     w.WriteHeader(http.StatusOK)
 })
@@ -27,6 +28,7 @@ http.ListenAndServe(":8080", nil)
 ### 2. Custom mux
 
 ```go
+// mux is a multiplexer (router) that watches incoming requests and calls handlers
 mux := http.NewServeMux()
 
 mux.HandleFunc("GET /items", listItems)
