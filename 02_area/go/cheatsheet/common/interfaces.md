@@ -1,5 +1,13 @@
 # Go Interfaces
 
+## Why
+
+- **Implicit implementation** — No `implements` keyword. If your type has the right methods, it satisfies the interface. This decouples packages — the consumer defines what it needs, not the producer.
+- **Define interfaces where they're used, not where they're implemented** — Keep interfaces small and in the consumer package. This follows the dependency inversion principle.
+- **Small interfaces** — One or two methods is ideal. io.Reader, io.Writer, and error are each one method. The smaller the interface, the more types satisfy it.
+- **Interface for testing** — The main reason to use interfaces in Go. Define an interface for external dependencies (DB, HTTP client, email sender), then swap in a mock during tests.
+- **Compile-time check** — `var _ MyInterface = (*MyStruct)(nil)` catches missing methods at compile time instead of runtime. Costs nothing, catches bugs early.
+
 ## Quick Reference
 
 | Use case             | Notes                                  |

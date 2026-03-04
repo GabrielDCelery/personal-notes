@@ -1,5 +1,13 @@
 # Go Structs
 
+## Why
+
+- **No constructors** — Go has no `new` keyword like Java/C#. The `NewX` function pattern is just a convention. Use it when you need to set defaults, validate, or allocate internal state.
+- **Pointer receivers** — Use pointer receivers when the method modifies the struct or the struct is large. If any method needs a pointer receiver, use pointer receivers for all methods on that type.
+- **Embedding is composition, not inheritance** — Embedded fields promote their methods. The outer struct "has-a" inner struct, not "is-a". There is no polymorphism through embedding.
+- **Struct tags** — Metadata read via reflection. The `json`, `db`, and `yaml` tags are the most common. They control serialization without changing your field names.
+- **Functional options** — The `WithX(val)` pattern solves the "too many constructor parameters" problem. Each option is self-documenting and optional, with sensible defaults.
+
 ## Quick Reference
 
 | Use case            | Method                               |

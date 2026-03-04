@@ -1,5 +1,13 @@
 # Go HTTP Operations
 
+## Why
+
+- **defer resp.Body.Close()** — HTTP responses hold an open TCP connection. If you don't close the body, the connection leaks and can't be reused by the connection pool. Always close it, even if you don't read it.
+- **http.Get vs http.NewRequest** — The shorthand functions (Get, Post) are fine for quick calls but give you no control over headers, method, or context. Use NewRequest + client.Do when you need any of those.
+- **Custom http.Client** — The default client has no timeout. A slow or unresponsive server will hang your goroutine forever. Always set a Timeout in production.
+- **json.NewDecoder vs io.ReadAll** — Decoder streams directly from the body into your struct. ReadAll reads everything into memory first. Decoder is better for HTTP because you avoid allocating the entire response as a byte slice.
+- **Check status code** — Go's HTTP client does not treat 4xx/5xx as errors. A 500 response returns a nil error. You must check resp.StatusCode yourself.
+
 ## Quick Reference
 
 | Use case           | Method                             |

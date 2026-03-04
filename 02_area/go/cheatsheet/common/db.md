@@ -1,16 +1,26 @@
 # Go Database (database/sql)
 
+## Why
+
+- **sql.Open doesn't connect** — It just validates the driver and DSN. Always call db.Ping to verify the connection actually works.
+- **db is a pool, not a connection** — sql.DB manages a pool of connections. Don't open/close it per request — create one at startup, share it everywhere.
+- **Connection pool settings** — Without limits, Go opens unbounded connections under load, which can exhaust your database. Always set MaxOpenConns.
+- **defer rows.Close()** — Rows hold a connection from the pool. If you don't close them, the connection is never returned and the pool eventually starves.
+- **rows.Err()** — The for rows.Next() loop can exit early due to an error, not just end of results. Always check rows.Err() after the loop.
+- **sql.ErrNoRows** — QueryRow returns this when no row matches. It's not a real error — it means "not found". Handle it explicitly rather than treating it as a failure.
+- **defer tx.Rollback()** — Safe to call after Commit (it's a no-op). Guarantees cleanup if any error causes an early return before Commit.
+
 ## Quick Reference
 
-| Use case                  | Method                                      |
-| ------------------------- | ------------------------------------------- |
-| Open connection           | `sql.Open` + `db.Ping`                      |
-| Query multiple rows       | `db.QueryContext` + `rows.Scan`             |
-| Query single row          | `db.QueryRowContext` + `row.Scan`           |
-| Execute (insert/update)   | `db.ExecContext`                            |
-| Transaction               | `db.BeginTx` + `tx.Commit/Rollback`        |
-| Prepared statement        | `db.PrepareContext`                         |
-| Check no rows             | `errors.Is(err, sql.ErrNoRows)`             |
+| Use case                | Method                              |
+| ----------------------- | ----------------------------------- |
+| Open connection         | `sql.Open` + `db.Ping`              |
+| Query multiple rows     | `db.QueryContext` + `rows.Scan`     |
+| Query single row        | `db.QueryRowContext` + `row.Scan`   |
+| Execute (insert/update) | `db.ExecContext`                    |
+| Transaction             | `db.BeginTx` + `tx.Commit/Rollback` |
+| Prepared statement      | `db.PrepareContext`                 |
+| Check no rows           | `errors.Is(err, sql.ErrNoRows)`     |
 
 ## Setup
 

@@ -1,5 +1,14 @@
 # Go Slices & Maps
 
+## Why
+
+- **Slices are references to arrays** — Slicing (`s[1:3]`) shares the underlying array. Modifying the slice modifies the original. Copy explicitly when you need independence.
+- **append may reallocate** — When capacity is exceeded, append allocates a new, larger array and copies. Always use `s = append(s, ...)` — the returned slice may point to new memory.
+- **Pre-allocate with make** — `make([]T, 0, n)` avoids repeated reallocations when you know the approximate size. Significant performance difference in hot loops.
+- **nil vs empty slice** — Both have len 0 and work with range/append. But `json.Marshal(nil)` produces `null`, while `json.Marshal([]int{})` produces `[]`. This matters for APIs.
+- **nil map panics on write** — `var m map[K]V` is nil. Reads return zero values safely, but writes panic. Always initialize with `make` or a literal before writing.
+- **Map iteration order is random** — Go randomizes map iteration on purpose. Never rely on key order.
+
 ## Quick Reference
 
 | Use case         | Method                              |

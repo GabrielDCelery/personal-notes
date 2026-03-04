@@ -1,5 +1,12 @@
 # Go Generics
 
+## Why
+
+- **Type safety without duplication** — Before generics, you'd write the same function for each type or use `interface{}` and lose compile-time checks. Generics give you both.
+- **any vs comparable** — `any` allows all types but you can't do much with them. `comparable` lets you use `==` and use the type as a map key.
+- **Tilde (~) constraints** — `~float64` matches any type whose underlying type is float64, including custom types like `type Celsius float64`. Without tilde, only the exact type matches.
+- **When NOT to use generics** — If your function only works with one or two types, just write separate functions. Generics add complexity — use them when you have real duplication across 3+ types.
+
 ## Quick Reference
 
 | Use case             | Syntax                                       |

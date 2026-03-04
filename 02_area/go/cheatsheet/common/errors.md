@@ -1,5 +1,13 @@
 # Go Error Handling
 
+## Why
+
+- **Errors are values, not exceptions** — Go returns errors explicitly. This forces you to handle them at every call site instead of letting them propagate silently up the stack.
+- **Wrap with %w** — Wrapping adds context ("what was I doing when this failed") while preserving the original error for inspection with errors.Is/As.
+- **errors.Is vs errors.As** — Is checks for a specific error value (sentinel). As checks for a specific error type and extracts it. Both walk the entire wrap chain.
+- **Sentinel errors** — Package-level `var ErrNotFound = errors.New(...)` gives callers a stable value to compare against. Use for well-known conditions like "not found" or "already exists".
+- **Custom error types** — When callers need more than just "what went wrong" — they need structured data like which field failed validation or what HTTP status to return.
+
 ## Quick Reference
 
 | Use case             | Method                       |

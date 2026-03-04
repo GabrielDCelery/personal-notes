@@ -1,5 +1,13 @@
 # Go Strings & Strconv
 
+## Why
+
+- **Strings are immutable** — Every concatenation allocates a new string. In a loop, `+=` is O(n^2). Use `strings.Builder` instead.
+- **strings.Builder** — Writes to an internal buffer and builds the string once at the end. Same idea as Java's StringBuilder or C#'s StringBuilder.
+- **strings.Cut over SplitN** — `Cut("k=v", "=")` returns key, value, and a bool. Cleaner than SplitN for key-value parsing and handles missing separators gracefully.
+- **strconv vs fmt.Sprintf** — strconv is faster for simple conversions (int to string). Sprintf is convenient but allocates more. Use strconv in hot paths.
+- **EqualFold** — Case-insensitive comparison without allocating lowercased copies. Always use this instead of `ToLower(a) == ToLower(b)`.
+
 ## Quick Reference — strings
 
 | Use case        | Method                                    |

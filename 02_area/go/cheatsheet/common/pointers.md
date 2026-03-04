@@ -1,5 +1,13 @@
 # Go Pointers
 
+## Why
+
+- **Go is pass-by-value** — Everything is copied when passed to a function. Pointers let you avoid copying large structs and let functions modify the caller's data.
+- **Slices and maps are already references** — They contain internal pointers, so you don't need to pass `*[]int`. But append can reallocate, so always return the new slice.
+- **nil pointer = absence** — Returning `*User` lets you return nil for "not found" without a separate bool. But always check for nil before dereferencing.
+- **Pointer for optional fields** — `*string` distinguishes "not provided" (nil) from "provided but empty" (""). Common in PATCH/update APIs.
+- **new vs &** — `new(T)` allocates and returns a pointer to a zero value. `&T{...}` does the same but lets you set fields. The `&` form is idiomatic for structs.
+
 ## Quick Reference
 
 | Use case          | Method                    |

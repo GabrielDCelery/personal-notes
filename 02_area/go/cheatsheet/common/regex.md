@@ -2,6 +2,13 @@
 
 > Go uses RE2 syntax — no backreferences or lookaheads, but guaranteed linear time.
 
+## Why
+
+- **RE2 not PCRE** — Go deliberately uses RE2 for guaranteed O(n) matching. No catastrophic backtracking. The trade-off is no lookaheads or backreferences.
+- **MustCompile for package-level vars** — Compile once, reuse everywhere. MustCompile panics on invalid patterns, which is fine at init time — you want to fail fast.
+- **Compile for user input** — When the pattern comes from a user or config, use Compile to handle errors gracefully instead of panicking.
+- **strings package first** — For simple operations (Contains, HasPrefix, Split), the strings package is faster and clearer than regex. Only reach for regexp when you need pattern matching.
+
 ## Quick Reference
 
 | Use case          | Method                           |

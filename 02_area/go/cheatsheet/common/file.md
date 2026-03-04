@@ -1,5 +1,12 @@
 # Go File Operations
 
+## Why
+
+- **os.WriteFile vs os.Create** — WriteFile is a one-shot convenience for small data. Create gives you a file handle for multiple writes, buffered I/O, or when you need more control.
+- **defer f.Close()** — File descriptors are a limited OS resource. Leaking them causes "too many open files" errors under load.
+- **bufio.NewWriter** — Each f.Write is a syscall. Buffered writer batches them, which is significantly faster for many small writes. Don't forget to Flush.
+- **O_APPEND flag** — Without it, os.Create truncates the file. Use OpenFile with O_APPEND when you want to add to existing content (log files, etc).
+
 ## Quick Reference
 
 | Use case              | Method                        |

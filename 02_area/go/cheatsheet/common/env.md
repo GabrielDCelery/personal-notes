@@ -1,5 +1,12 @@
 # Go Environment Variables
 
+## Why
+
+- **LookupEnv vs Getenv** — Getenv returns "" for both "not set" and "set to empty". LookupEnv distinguishes the two with an ok bool. Use LookupEnv when the distinction matters.
+- **Config struct pattern** — Centralizes all env var reads into one place at startup. Fails fast if required vars are missing. The rest of the app works with typed fields, not raw strings.
+- **No .env in production** — dotenv files are for local dev. In production, env vars come from the platform (ECS task def, K8s configmap, systemd service file). Don't ship .env files.
+- **Parse early, use typed values** — Convert strings to int/bool/duration at startup. The rest of the code shouldn't call strconv or deal with parse errors.
+
 ## Quick Reference
 
 | Use case       | Method                    |

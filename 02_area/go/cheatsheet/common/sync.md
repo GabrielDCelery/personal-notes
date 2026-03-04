@@ -1,5 +1,14 @@
 # Go Sync Primitives
 
+## Why
+
+- **WaitGroup** — The simplest way to wait for goroutines to finish. Add before launching, Done inside the goroutine, Wait in the caller. Without it, main exits before goroutines complete.
+- **Mutex vs channels** — Use a mutex to protect shared state (a map, a counter). Use channels to communicate between goroutines. "Share memory by communicating" doesn't mean never use mutexes.
+- **RWMutex** — When reads vastly outnumber writes, RWMutex allows concurrent reads while still ensuring exclusive writes. Regular Mutex blocks all access, even concurrent reads.
+- **sync.Once** — Guarantees a function runs exactly once, even under concurrent access. Perfect for lazy initialization of singletons (DB connections, config loading).
+- **sync.Map** — Optimized for two patterns: keys written once and read many times, or disjoint key sets per goroutine. For everything else, a regular map with a Mutex is simpler and faster.
+- **Atomic vs Mutex** — Atomics are faster for simple operations (counters, flags) because they avoid lock contention. Use Mutex when you need to protect multiple fields or complex logic.
+
 ## Quick Reference
 
 | Use case                      | Method                        |

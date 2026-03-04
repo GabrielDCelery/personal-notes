@@ -1,5 +1,12 @@
 # Go Middleware & Context
 
+## Why
+
+- **Middleware is just function composition** — A function that takes a handler and returns a handler. No framework needed — it's the same pattern in stdlib, chi, and gin.
+- **Order matters** — Middleware wraps right-to-left but executes left-to-right. `logging(auth(mux))` means logging runs first (before), then auth, then handler.
+- **Unexported context key types** — Prevents other packages from accidentally overwriting your context values. A `type contextKey string` in your package is invisible to everyone else.
+- **r.WithContext** — HTTP request is the carrier for context in web apps. Middleware enriches the context and passes it forward via `r.WithContext(ctx)`.
+
 ## Quick Reference
 
 | Use case                | Method                        |

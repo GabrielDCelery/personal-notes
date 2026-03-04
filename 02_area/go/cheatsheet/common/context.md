@@ -1,5 +1,13 @@
 # Go Context
 
+## Why
+
+- **Always pass as first param** — It's the standard way to propagate deadlines, cancellation, and request-scoped values through your call chain. Every stdlib API that does I/O accepts a context.
+- **defer cancel()** — WithTimeout/WithCancel allocate resources (timers, goroutines). If you don't cancel, they leak until the parent context ends.
+- **Don't store in structs** — Context is per-request, not per-object. Storing it in a struct couples the object's lifetime to a single request.
+- **Values for request-scoped data only** — Request ID, auth token, trace ID. Never config, loggers, or DB connections — those are dependencies, not request metadata.
+- **context.TODO vs context.Background** — Both are empty contexts. Use Background at the top of your program. Use TODO when you know a context should be passed but haven't wired it up yet.
+
 ## Quick Reference
 
 | Use case            | Method                               |

@@ -1,5 +1,13 @@
 # Go HTTP Server Setup
 
+## Why
+
+- **NewServeMux vs DefaultServeMux** — The default mux is a global. Any imported package can register routes on it. Create your own for explicit control.
+- **http.Server vs http.ListenAndServe** — The shorthand has no timeouts. A slow client can hold a connection open forever (slowloris). Always use http.Server in production.
+- **Graceful shutdown** — Without it, in-flight requests get killed mid-response on deploy. Shutdown waits for active requests to finish within the context deadline.
+- **Middleware** — Just a function that takes a handler, returns a handler, and calls next.ServeHTTP in between. No framework needed.
+- **Set Content-Type explicitly** — Go's DetectContentType guesses wrong for JSON (text/plain). Always set it yourself before writing the body.
+
 ## Quick Reference
 
 | Use case            | Method                           |

@@ -1,5 +1,14 @@
 # Go Testing
 
+## Why
+
+- **Table-driven tests** — The standard Go pattern. One test function covers many cases. Adding a case is one line, not a whole new function. Subtests (`t.Run`) give each case a name for clear failure output.
+- **t.Errorf vs t.Fatalf** — Errorf marks the test as failed but keeps running (good for checking multiple things). Fatalf stops immediately (good when continuing would panic or be meaningless).
+- **httptest.NewRecorder** — Tests your handler function directly without starting a server. Fast, no port allocation, no network overhead. Use this for unit tests.
+- **httptest.NewServer** — Starts a real HTTP server on a random port. Use for integration tests where you want to test the full HTTP stack including middleware and routing.
+- **Mock via interfaces** — Define an interface for your dependency, implement a mock struct for tests. No mocking framework needed for simple cases.
+- **TestMain** — Runs once before/after all tests in a package. Use for expensive setup like starting a test database or loading fixtures.
+
 ## Quick Reference
 
 | Use case          | Method                                 |

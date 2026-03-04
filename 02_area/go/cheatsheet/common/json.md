@@ -1,5 +1,13 @@
 # Go JSON
 
+## Why
+
+- **Struct tags** — Go's JSON encoder uses reflection. Without tags, fields export as their Go name (`CreatedAt`). Tags control the wire format (`created_at`) and hide fields (`-`) without changing Go code.
+- **Marshal vs Encoder** — Marshal works on `[]byte` (in-memory). Encoder streams to an `io.Writer`. Use Encoder for HTTP responses — no intermediate byte slice allocation.
+- **omitempty** — Prevents sending `"email":""` or `"count":0` over the wire. Useful for PATCH APIs where absence means "don't update".
+- **RawMessage** — Defers decoding. Use when you need to inspect a discriminator field (like `type`) before knowing what shape the rest of the JSON is.
+- **Custom Marshaler** — The default encoder handles basic types. Implement MarshalJSON/UnmarshalJSON when your type needs a non-obvious wire format (enums as strings, custom date formats).
+
 ## Quick Reference
 
 | Use case                 | Method                                     |

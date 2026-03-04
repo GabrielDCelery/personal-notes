@@ -2,6 +2,14 @@
 
 > Standard library structured logger since Go 1.21. Use `log/slog` for new projects, zap for perf-critical paths.
 
+## Why
+
+- **Structured over unstructured** — `slog.Info("created", "id", 42)` produces machine-parseable key-value pairs. `log.Println("created user 42")` produces a string you have to regex to search.
+- **JSON handler for production** — Log aggregators (Datadog, ELK, CloudWatch) parse JSON natively. Text handler is for local dev where humans read the output.
+- **Child loggers with With()** — Attach request-scoped fields (request_id, user_id) once, and every subsequent log line includes them. Avoids repeating the same fields everywhere.
+- **slog.Attr for hot paths** — The key-value `slog.Info("msg", "k", v)` API allocates. Using `slog.LogAttrs` with typed attrs avoids allocations when performance matters.
+- **slog vs zap** — slog is good enough for most apps and has zero dependencies. Use zap only when benchmarks prove slog is a bottleneck (rare).
+
 ## Quick Reference
 
 | Use case            | Method                          |

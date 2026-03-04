@@ -2,20 +2,28 @@
 
 > Go uses a reference time for formatting: `Mon Jan 2 15:04:05 MST 2006` (1/2 3:04:05 PM 2006, Unix time 1136239445).
 
+## Why
+
+- **Reference time, not format codes** — Go uses a specific moment (Jan 2, 2006 3:04:05 PM) instead of `%Y-%m-%d`. You show Go what the output should look like using that exact date, and it figures out the pattern.
+- **time.Since over time.Now().Sub()** — Both work, but Since is more readable and idiomatic for measuring elapsed time. Same for time.Until for future deadlines.
+- **t.Equal over ==** — Two time.Time values can represent the same instant but have different locations (UTC vs local). Equal compares the instant, == compares the struct including location.
+- **Ticker.Stop to avoid leaks** — Tickers run forever. If you don't stop them, the goroutine feeding the channel leaks. Always defer ticker.Stop().
+- **Duration from variable** — `n * time.Second` only works with constants. For variables, cast first: `time.Duration(n) * time.Second`. Go won't implicitly convert int to Duration.
+
 ## Quick Reference
 
-| Use case         | Method                                    |
-| ---------------- | ----------------------------------------- |
-| Current time     | `time.Now()`                              |
-| Format           | `t.Format("2006-01-02")`                  |
-| Parse            | `time.Parse("2006-01-02", s)`             |
-| Duration         | `5 * time.Second`                         |
-| Add duration     | `t.Add(2 * time.Hour)`                    |
-| Difference       | `t2.Sub(t1)`                              |
-| Sleep            | `time.Sleep(100 * time.Millisecond)`      |
-| Timer (once)     | `time.NewTimer(5 * time.Second)`          |
-| Ticker (repeat)  | `time.NewTicker(1 * time.Second)`         |
-| Timeout context  | `context.WithTimeout(ctx, 5*time.Second)` |
+| Use case        | Method                                    |
+| --------------- | ----------------------------------------- |
+| Current time    | `time.Now()`                              |
+| Format          | `t.Format("2006-01-02")`                  |
+| Parse           | `time.Parse("2006-01-02", s)`             |
+| Duration        | `5 * time.Second`                         |
+| Add duration    | `t.Add(2 * time.Hour)`                    |
+| Difference      | `t2.Sub(t1)`                              |
+| Sleep           | `time.Sleep(100 * time.Millisecond)`      |
+| Timer (once)    | `time.NewTimer(5 * time.Second)`          |
+| Ticker (repeat) | `time.NewTicker(1 * time.Second)`         |
+| Timeout context | `context.WithTimeout(ctx, 5*time.Second)` |
 
 ## Formatting and Parsing
 

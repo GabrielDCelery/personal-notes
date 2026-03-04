@@ -1,5 +1,13 @@
 # Go Goroutines & Channels
 
+## Why
+
+- **Goroutines are cheap** — They start with ~2KB of stack (vs ~1MB for OS threads). You can spawn thousands without worry. The Go scheduler multiplexes them onto OS threads.
+- **Unbuffered vs buffered** — Unbuffered channels synchronize sender and receiver (handoff). Buffered channels decouple them up to the buffer size. Use unbuffered by default; buffer only when you have a reason.
+- **Always close from the sender side** — The sender knows when there's no more data. Closing from the receiver can cause a panic if the sender writes to a closed channel.
+- **chan struct{} for signals** — Uses zero memory per send. It's idiomatic for done/cancellation channels where the value doesn't matter, only the event.
+- **select picks randomly** — When multiple cases are ready, Go picks one at random. This prevents starvation and means you can't rely on case ordering.
+
 ## Quick Reference
 
 | Use case           | Method                              |

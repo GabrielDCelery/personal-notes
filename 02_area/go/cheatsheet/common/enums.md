@@ -2,6 +2,14 @@
 
 > Go has no enum keyword. Use `const` blocks with `iota` instead.
 
+## Why
+
+- **iota resets per const block** — It's a compile-time counter starting at 0. Adding a new value in the middle renumbers everything below it — be careful with persisted data.
+- **Skip zero with blank identifier** — The zero value of an int is 0. If `Pending = 0`, an uninitialized variable looks like a valid Pending status. Skip 0 with `_ = iota` so zero means "not set".
+- **Custom String() method** — Without it, `fmt.Println(Active)` prints `1`. Implementing Stringer makes logs and debugging readable.
+- **String-based enums** — When the value needs to be human-readable in JSON or databases without a custom marshaler. Trades type safety (anyone can cast a string) for simplicity.
+- **Bitmask with 1 << iota** — Each value is a power of 2, so you can combine them with `|` and check with `&`. Classic for permissions and feature flags.
+
 ## Quick Reference
 
 | Use case        | Method                        |

@@ -1,5 +1,12 @@
 # Go Type Assertions and Type Switches
 
+## Why
+
+- **Type assertion** — Interfaces hide the concrete type. Assertions let you get it back when you need type-specific behavior. Always use the `val, ok` form to avoid panics.
+- **Type switch over chain of if/else assertions** — Cleaner when checking multiple types. The compiler gives you the concrete type as `v` inside each case.
+- **errors.As over type switch for errors** — Type switches don't walk the wrap chain. `errors.As` does. Use type switches for non-error interfaces, `errors.As` for errors.
+- **any (interface{})** — Sometimes unavoidable (JSON decoding into unknown structure, generic containers pre-generics). But prefer generics or specific interfaces when possible.
+
 ## Quick Reference
 
 | Use case        | Method                     |

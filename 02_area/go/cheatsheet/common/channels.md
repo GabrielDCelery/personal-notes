@@ -1,5 +1,15 @@
 # Go Channels
 
+## Why
+
+- **Unbuffered = synchronization** — Sender blocks until receiver is ready. Use when you want a guaranteed handoff between goroutines.
+- **Buffered = decoupling** — Sender only blocks when the buffer is full. Use when producer and consumer run at different speeds and you want to smooth out bursts.
+- **Channel direction in signatures** — `chan<-` (send-only) and `<-chan` (receive-only) make the contract explicit. The compiler enforces it, preventing accidental misuse.
+- **close signals "no more data"** — Range over a channel exits when it's closed. Always close from the sender side — closing from the receiver panics if the sender writes again.
+- **select** — Waits on multiple channels simultaneously. Picks randomly if multiple are ready. Add `default` to make it non-blocking.
+- **chan struct{} for signals** — Zero-size type, zero memory per send. Idiomatic for done/cancellation where the value doesn't matter.
+- **Semaphore pattern** — A buffered channel of size N naturally limits concurrency to N goroutines. Simpler than a WaitGroup + counter.
+
 ## Quick Reference
 
 | Use case               | Method                     |

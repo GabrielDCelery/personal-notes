@@ -1,5 +1,13 @@
 # Go Crypto
 
+## Why
+
+- **crypto/rand not math/rand** — math/rand is predictable (seeded PRNG). crypto/rand reads from the OS entropy source. Always use crypto/rand for tokens, keys, and anything security-related.
+- **bcrypt for passwords** — Hashing (SHA-256) is fast by design, which makes brute-force easy. bcrypt is intentionally slow and includes a salt. Never store passwords with SHA/MD5.
+- **hmac.Equal for verification** — Regular `==` comparison is vulnerable to timing attacks. hmac.Equal uses constant-time comparison regardless of where the mismatch is.
+- **AES-GCM over AES-CBC** — GCM provides both encryption and authentication (integrity check). CBC only encrypts — tampering goes undetected. Always prefer authenticated encryption.
+- **Nonce must be unique** — Reusing a nonce with the same key in AES-GCM completely breaks the security. Generate a fresh random nonce for every encryption.
+
 ## Quick Reference
 
 | Use case       | Package / Method               |
