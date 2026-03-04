@@ -1,5 +1,15 @@
 # Go File Operations
 
+## Quick Reference
+
+| Use case              | Method                        |
+| --------------------- | ----------------------------- |
+| Simple one-shot write | `os.WriteFile`                |
+| Multiple writes       | `os.Create` + `Write`         |
+| Appending             | `os.OpenFile` with `O_APPEND` |
+| High performance      | `bufio.NewWriter`             |
+| Formatted data        | `fmt.Fprintf`                 |
+
 ## Writing to a File
 
 ### 1. Write all at once (simplest)
@@ -58,13 +68,3 @@ defer f.Close()
 
 fmt.Fprintf(f, "name: %s, age: %d\n", "Alice", 30)
 ```
-
-## Quick Reference
-
-| Use case              | Method                        |
-| --------------------- | ----------------------------- |
-| Simple one-shot write | `os.WriteFile`                |
-| Multiple writes       | `os.Create` + `Write`         |
-| Appending             | `os.OpenFile` with `O_APPEND` |
-| High performance      | `bufio.NewWriter`             |
-| Formatted data        | `fmt.Fprintf`                 |
