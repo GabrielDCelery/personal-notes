@@ -2,27 +2,27 @@
 
 ## Quick Reference — strings
 
-| Use case           | Method                                |
-| ------------------ | ------------------------------------- |
-| Contains           | `strings.Contains(s, "sub")`          |
-| Prefix / suffix    | `strings.HasPrefix` / `strings.HasSuffix` |
-| Split              | `strings.Split(s, ",")`               |
-| Join               | `strings.Join(slice, ",")`            |
-| Replace            | `strings.ReplaceAll(s, old, new)`     |
-| Trim whitespace    | `strings.TrimSpace(s)`               |
-| To upper/lower     | `strings.ToUpper` / `strings.ToLower` |
-| Build strings      | `strings.Builder`                     |
+| Use case        | Method                                    |
+| --------------- | ----------------------------------------- |
+| Contains        | `strings.Contains(s, "sub")`              |
+| Prefix / suffix | `strings.HasPrefix` / `strings.HasSuffix` |
+| Split           | `strings.Split(s, ",")`                   |
+| Join            | `strings.Join(slice, ",")`                |
+| Replace         | `strings.ReplaceAll(s, old, new)`         |
+| Trim whitespace | `strings.TrimSpace(s)`                    |
+| To upper/lower  | `strings.ToUpper` / `strings.ToLower`     |
+| Build strings   | `strings.Builder`                         |
 
 ## Quick Reference — strconv
 
-| Use case           | Method                               |
-| ------------------ | ------------------------------------ |
-| Int → string       | `strconv.Itoa(42)`                   |
-| String → int       | `strconv.Atoi("42")`                 |
-| Float → string     | `strconv.FormatFloat`                |
-| String → float     | `strconv.ParseFloat("3.14", 64)`     |
-| Bool → string      | `strconv.FormatBool(true)`           |
-| String → bool      | `strconv.ParseBool("true")`          |
+| Use case       | Method                           |
+| -------------- | -------------------------------- |
+| Int → string   | `strconv.Itoa(42)`               |
+| String → int   | `strconv.Atoi("42")`             |
+| Float → string | `strconv.FormatFloat`            |
+| String → float | `strconv.ParseFloat("3.14", 64)` |
+| Bool → string  | `strconv.FormatBool(true)`       |
+| String → bool  | `strconv.ParseBool("true")`      |
 
 ## Searching & Matching
 
