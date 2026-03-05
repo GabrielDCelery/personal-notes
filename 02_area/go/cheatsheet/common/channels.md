@@ -152,9 +152,12 @@ go func() {
 
 ```go
 jobs := make(chan int, 100)
+var wg sync.WaitGroup
 
 for i := 0; i < 5; i++ {
+    wg.Add(1)
     go func() {
+        defer wg.Done()
         for job := range jobs {
             process(job)
         }
@@ -165,6 +168,7 @@ for j := 0; j < 50; j++ {
     jobs <- j
 }
 close(jobs)
+wg.Wait()
 ```
 
 ### 11. Fan-in — merge multiple channels into one
