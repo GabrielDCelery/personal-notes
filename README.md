@@ -13,7 +13,7 @@ To unencrypt it do the following:
 ```sh
 git clone
 age -d -o git-crypt-notes.key  git-crypt-notes.key.age
-git-crypt unlock ./git-crypt-notes
+git-crypt unlock ./git-crypt-notes.key
 ```
 
 ## What is PARA?
