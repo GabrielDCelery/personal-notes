@@ -1,7 +1,1 @@
-01_project/**/* filter=git-crypt diff=git-crypt
-02_area/**/* filter=git-crypt diff=git-crypt
-03_resource/**/* filter=git-crypt diff=git-crypt
-04_archive/**/* filter=git-crypt diff=git-crypt
-05_undecided/**/* filter=git-crypt diff=git-crypt
-06_learning/**/* filter=git-crypt diff=git-crypt
 README.md !filter !diff
