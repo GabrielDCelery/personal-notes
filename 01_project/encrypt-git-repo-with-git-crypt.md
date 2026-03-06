@@ -43,5 +43,22 @@ rm git-crypt-notes.key
 ```sh
 git clone
 age -d -o git-crypt-notes.key  git-crypt-notes.key.age
-git-crypt unlock ./git-crypt-notes
+git-crypt unlock ./git-crypt-notes.key
+```
+
+# Remove encryption
+
+```sh
+git-crypt unlock ./git-crypt-notes.key
+
+# Remove files from index and re-add without encryption
+git rm -r --cached .
+git add .
+git commit -m "chore: remove git-crypt encryption"
+
+# Remove git-crypt key and config
+rm -rf .git/git-crypt
+
+# If encryption history was already pushed force push to clean it up
+git push --force
 ```
