@@ -4,6 +4,18 @@ My **second brain**. I tried many methods, but PARA was the one that finally "cl
 
 There a great [YouTube](https://www.youtube.com/watch?v=T6Mfl1OywM8) video that introduced me to the concept, but there is also this article [PARA guide](https://medium.com/practice-in-public/mastering-the-para-method-and-how-to-take-it-to-new-heights-d48afa1d13b0).
 
+# How to use the Repo?
+
+The repo has been encrypted with `age` and `git-crypt`.
+
+To unencrypt it do the following:
+
+```sh
+git clone
+age -d -o git-crypt-notes.key  git-crypt-notes.key.age
+git-crypt unlock ./git-crypt-notes
+```
+
 ## What is PARA?
 
 PARA (Projects, Areas, Resources, Archives) is a folder organization method focused on **actionability**. It's the spiritual successor to GTD (Getting Things Done), designed to make knowledge work more actionable by organizing information based on how frequently you need to act on it.
