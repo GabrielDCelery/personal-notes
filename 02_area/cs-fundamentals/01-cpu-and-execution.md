@@ -558,154 +558,50 @@ func sum(nums []int) int {
 
 ### Step 1 — Compilation
 
-`go build` turns this into machine instructions. A Go slice is a struct: `{pointer to data, length, capacity}`. The function receives these in registers (Go 1.17+ calling convention):
+`go build` turns this into machine instructions. The compiler assigns variables to registers and produces a tight loop:
 
 ```asm
-# RAX = pointer to underlying array
-# RBX = length of slice
+# RAX = pointer to array, RBX = length, RCX = total, RDX = i
 
-    XOR  RCX, RCX          # total = 0 (compiler picked RCX for total)
-    XOR  RDX, RDX          # i = 0 (RDX is the loop counter)
-
+    XOR  RCX, RCX          # total = 0
+    XOR  RDX, RDX          # i = 0
 loop:
-    CMP  RDX, RBX          # compare i with length
-    JGE  done              # if i >= length, jump to done
-    MOV  R8, [RAX + RDX*8] # load nums[i] into R8 (each int is 8 bytes)
+    CMP  RDX, RBX          # i >= length?
+    JGE  done              # yes → exit
+    MOV  R8, [RAX + RDX*8] # load nums[i]
     ADD  RCX, R8           # total += nums[i]
     INC  RDX               # i++
-    JMP  loop              # go back to loop
-
+    JMP  loop
 done:
-    MOV  RAX, RCX          # put total in RAX (return value register)
-    RET                     # return
+    MOV  RAX, RCX          # return total
+    RET
 ```
 
-This is what lives in the binary on disk. Nothing has run yet — these are just bytes in a file.
+These are just bytes in a file. Nothing runs until the CPU executes them.
 
-### Step 2 — Instruction fetch
+### Step 2 — Loading and instruction fetch
 
-When you run the binary, the OS loads it into memory. The CPU's program counter (RIP) points at the first instruction.
+The OS loads the binary into memory. The entire loop is ~23 bytes — fits in a single L1 cache line (64 bytes). After the first iteration, every instruction fetch costs ~1 ns.
 
-```
-RAM:
-  address 0x4000: XOR RCX, RCX      ← RIP points here
-  address 0x4003: XOR RDX, RDX
-  address 0x4006: CMP RDX, RBX
-  address 0x4009: JGE done
-  address 0x400B: MOV R8, [RAX + RDX*8]
-  address 0x4010: ADD RCX, R8
-  address 0x4013: INC RDX
-  address 0x4015: JMP loop
-  address 0x4017: MOV RAX, RCX
-  address 0x401A: RET
-```
+### Step 3 — Branch prediction
 
-The entire loop is ~23 bytes of machine code — fits in one L1 cache line (64 bytes). After the first iteration, every instruction fetch is an L1 cache hit (~1 ns).
-
-### Step 3 — Pipeline and branch prediction
-
-The loop has two branches: `JGE done` (are we done?) and `JMP loop` (go back).
-
-```
-Iteration 1:
-  CMP RDX, RBX     → 0 < 1000000, not done
-  JGE done          → predictor: "probably not done" → correct
-
-Iteration 2:
-  CMP RDX, RBX     → 1 < 1000000, not done
-  JGE done          → predictor: "not done again" → correct (learns the pattern)
-
-...999,997 more iterations, all predicted correctly...
-
-Iteration 1,000,000:
-  CMP RDX, RBX     → 1000000 >= 1000000, done!
-  JGE done          → predictor: "not done" → WRONG (one pipeline flush)
-                       cost: ~15 cycles, happens once in a million iterations
-```
-
-`JMP loop` is unconditional — the CPU always knows where to go. `JGE done` is conditional but predicted correctly 999,999 out of 1,000,000 times. The pipeline stays full for virtually the entire loop.
+The loop has one conditional branch: `JGE done` (are we finished?). The CPU guesses it will be `false` every iteration. It's right 999,999 out of 1,000,000 times — the one miss at the end costs ~15 cycles and happens once total. The pipeline stays full for virtually the entire loop.
 
 ### Step 4 — Memory access
 
-Each iteration loads `nums[i]` with `MOV R8, [RAX + RDX*8]`:
+Each iteration does `MOV R8, [RAX + RDX*8]` to load `nums[i]`:
 
-```
-nums slice in memory (each int is 8 bytes):
+- **First access**: cache miss — fetches 64 bytes (8 ints) from RAM into L1. Costs ~100 ns.
+- **Next 7 iterations**: same cache line, ~1 ns each.
+- **After that**: the hardware prefetcher detects the sequential pattern and fetches ahead. Remaining million loads cost ~1 ns each.
 
-Address:  0x80000  0x80008  0x80010  0x80018  0x80020  0x80028 ...
-Value:    [  42  ] [  17  ] [   3  ] [  99  ] [  55  ] [  81  ] ...
-          nums[0]  nums[1]  nums[2]  nums[3]  nums[4]  nums[5]
+Out of a million elements, you pay the ~100 ns RAM penalty exactly once.
 
-Cache line = 64 bytes = 8 ints
+### Step 5 — Register operation and return
 
-Iteration 0: LOAD nums[0] at 0x80000
-  → cache miss (first access), fetches bytes 0x80000-0x8003F into L1
-  → that's nums[0] through nums[7] — all in cache now
-  → cost: ~100 ns (RAM access)
+`total` lives in register RCX for the entire loop — it never touches RAM. Each `ADD RCX, R8` costs 1 cycle (~0.3 ns). On return, the result moves to RAX (the return value register) and the function exits. No memory involved.
 
-Iterations 1-7: all cache hits — same cache line
-  → cost: ~1 ns each
-
-Meanwhile, the hardware prefetcher noticed: 0x80000, 0x80008, 0x80010...
-  → "sequential pattern, stride = 8 bytes"
-  → starts fetching nums[8]-nums[15] BEFORE you ask for them
-
-Iteration 8: LOAD nums[8] at 0x80040
-  → cache HIT — prefetcher already brought it in
-  → cost: ~1 ns (would have been ~100 ns without prefetcher)
-```
-
-Out of a million elements, you pay ~100 ns for the very first access. After that, the prefetcher keeps you at ~1 ns per load.
-
-### Step 5 — Register operation
-
-```
-ADD RCX, R8
-
-RCX (total) = 42     ← already in a register, no memory access
-R8 (nums[i]) = 17    ← just loaded from cache into a register
-
-ALU computes: 42 + 17 = 59
-
-Result written to RCX: total is now 59
-
-Cost: 1 cycle (~0.3 ns)
-```
-
-`total` never touches RAM during the entire loop. The compiler put it in RCX and it stays there for all million iterations. This is register allocation — the compiler's most important optimisation.
-
-### Step 6 — Return
-
-```
-After the loop:
-  RCX holds the final total (say, 4999999500000)
-
-done:
-  MOV RAX, RCX    # copy total to RAX (the return value register)
-  RET             # pop return address from stack, jump back to caller
-```
-
-The caller reads RAX to get the result. No memory involved. Since Go 1.17, return values are passed in registers. Before 1.17, Go passed return values on the stack — costing two extra memory operations per function call.
-
-### The full timeline for one iteration (steady state)
-
-```
-Time (cycles):  1      2      3      4      5
-
-CMP  RDX, RBX  [F]    [D]    [E]    [W]
-JGE  done              [F]    [D]    [E]    ← predicted, no stall
-MOV  R8, [...]                [F]    [D]    [E=cache hit, 1 cycle]
-ADD  RCX, R8                         [F]    [D] [E] [W]
-INC  RDX                                    [F] [D] [E] [W]
-
-With superscalar execution, independent instructions overlap.
-CMP + MOV can execute in parallel (different execution units).
-Effective throughput: ~2-3 cycles per iteration.
-```
-
-For a million elements: ~2-3 million cycles, or about 1 millisecond on a 3 GHz CPU. Most of that time the CPU is doing useful work — not waiting.
-
-The same code in Python would go through the interpreter for every single addition, unwrapping and re-wrapping Python integer objects each time. Same algorithm, ~100x slower.
+**Effective throughput**: ~2-3 cycles per iteration. A million elements takes roughly 1 ms. The same code in Python goes through the interpreter on every addition, unwrapping and re-wrapping integer objects — same algorithm, ~100x slower.
 
 ## Key Takeaways
 
