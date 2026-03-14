@@ -776,13 +776,13 @@ The register swap is ~5% of the cost. The other 95% is kernel overhead that goro
 
 All goroutines belong to the **same process**, so they share the same page table. CR3 (the register pointing to the active page table) doesn't change on a goroutine switch, which means all TLB entries remain valid.
 
-|                    | Process switch | Thread switch (same process) | Goroutine switch         |
-| ------------------ | -------------- | ---------------------------- | ------------------------ |
-| Registers saved    | All            | All                          | Only ones Go uses        |
-| Mode switch        | User → kernel  | User → kernel                | None (stays in user)     |
-| CR3 (page table)   | Changes        | Same                         | Same                     |
-| TLB                | Flushed        | Valid                        | Valid                    |
-| L1 cache           | Polluted       | Polluted (kernel code runs)  | Stays warm               |
+|                  | Process switch | Thread switch (same process) | Goroutine switch     |
+| ---------------- | -------------- | ---------------------------- | -------------------- |
+| Registers saved  | All            | All                          | Only ones Go uses    |
+| Mode switch      | User → kernel  | User → kernel                | None (stays in user) |
+| CR3 (page table) | Changes        | Same                         | Same                 |
+| TLB              | Flushed        | Valid                        | Valid                |
+| L1 cache         | Polluted       | Polluted (kernel code runs)  | Stays warm           |
 
 A goroutine switch only does the one thing it absolutely must — swap the register values. Everything else stays the same.
 
@@ -841,7 +841,7 @@ Python has OS threads, but the Global Interpreter Lock (GIL) means only one thre
 
 ```
 Python Thread 1 ─┐                    ┌→ OS Thread → Core 0
-Python Thread 2 ─┤→ GIL (one at a    │
+Python Thread 2 ─┤→ GIL (one at a     │
 Python Thread 3 ─┤   time only)  ─────┘
 Python Thread 4 ─┘                      Cores 1, 2, 3: idle
 ```
