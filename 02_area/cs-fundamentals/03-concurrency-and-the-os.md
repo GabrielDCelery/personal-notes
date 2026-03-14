@@ -774,28 +774,15 @@ The register swap is ~5% of the cost. The other 95% is kernel overhead that goro
 
 #### Why goroutines don't flush the TLB
 
-All goroutines belong to the **same process**, so they share the same page table. CR3 (the register pointing to the active page table) doesn't change on a goroutine switch, which means all TLB entries remain valid. The full picture:
+All goroutines belong to the **same process**, so they share the same page table. CR3 (the register pointing to the active page table) doesn't change on a goroutine switch, which means all TLB entries remain valid.
 
-```
-Process switch:
-  ✗ Save all registers
-  ✗ User mode → kernel mode → user mode
-  ✗ Change CR3 (switch page table)
-  ✗ Flush TLB → cold cache, ~100 ns per access until warm
-
-Thread switch (same process):
-  ✗ Save all registers
-  ✗ User mode → kernel mode → user mode
-  ✓ CR3 stays the same — same process, same page table
-  ✓ TLB stays valid
-
-Goroutine switch:
-  ✓ Save only a few registers
-  ✓ Stays in user mode — no kernel involvement
-  ✓ CR3 stays the same — same process, same page table
-  ✓ TLB stays valid
-  ✓ L1 cache stays warm — no kernel code polluting it
-```
+|                    | Process switch | Thread switch (same process) | Goroutine switch         |
+| ------------------ | -------------- | ---------------------------- | ------------------------ |
+| Registers saved    | All            | All                          | Only ones Go uses        |
+| Mode switch        | User → kernel  | User → kernel                | None (stays in user)     |
+| CR3 (page table)   | Changes        | Same                         | Same                     |
+| TLB                | Flushed        | Valid                        | Valid                    |
+| L1 cache           | Polluted       | Polluted (kernel code runs)  | Stays warm               |
 
 A goroutine switch only does the one thing it absolutely must — swap the register values. Everything else stays the same.
 
