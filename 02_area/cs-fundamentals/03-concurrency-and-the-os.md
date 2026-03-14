@@ -800,6 +800,97 @@ I/O-bound:
 
 Go's advantage is that goroutines handle both cases transparently. You write the same code whether you're doing CPU work or waiting for I/O — the runtime figures out the scheduling.
 
+## Optimising I/O-Bound Code — Batching and Durability
+
+For HTTP handlers and real-time data pipelines, the bottleneck is almost always **I/O, not CPU**. A typical request spends ~90% of its time waiting for the database, not parsing JSON or transforming data.
+
+```
+Handle request: 50ms total
+  ├── Parse body:         0.1ms   ← CPU, almost never the bottleneck
+  ├── Validate input:     0.01ms  ← CPU, irrelevant
+  ├── Query database:    45ms     ← I/O, network round-trip + query execution
+  ├── Transform result:   0.5ms   ← CPU, rarely matters
+  └── Serialize response: 0.2ms   ← CPU, rarely matters
+```
+
+Optimise I/O first: add database indexes, eliminate N+1 queries (one JOIN instead of 100 queries), cache results that don't change often, and make independent external calls in parallel instead of sequentially.
+
+### Batching writes
+
+When receiving high-frequency data (e.g. financial updates over a WebSocket), each database call costs a network round-trip (~1-5 ms). Buffering records in memory and flushing in batches reduces round-trips:
+
+```
+25 individual inserts:  25 × ~2ms = ~50ms
+1 batch insert:          1 × ~3ms = ~3ms
+```
+
+The pattern: buffer records, flush when the buffer hits a size threshold **or** a time limit — whichever comes first. The time limit prevents records from sitting in memory forever during slow periods.
+
+```
+on_message(record):
+    buffer.append(record)
+    if buffer.length >= 25:
+        flush(buffer)
+
+every 500ms:
+    if buffer is not empty:
+        flush(buffer)
+```
+
+**Go vs TypeScript difference:** In Go, if multiple goroutines push to the buffer concurrently, you need a mutex to protect it — or use a channel to funnel records to a single flushing goroutine. In TypeScript/Node.js, the event loop is single-threaded, so no lock is needed — `buffer.push()` and `buffer = []` can never interleave.
+
+### Crash resilience — WAL (Write-Ahead Log)
+
+Buffered records in memory are lost if the process crashes. A WAL is a simple file on local disk where you write each record **before** adding it to the in-memory buffer. If the process dies, the WAL file survives and you replay it on restart.
+
+```
+write-ahead logging:
+    on_message(record):
+        append record to WAL file on disk    ← survives crash
+        buffer.append(record)
+        if buffer.length >= 25:
+            batch_insert(buffer)
+            clear WAL file                   ← only after successful DB write
+
+    on_startup:
+        if WAL file has records:
+            batch_insert(records from WAL)   ← recover what was lost
+            clear WAL file
+```
+
+The key ordering: **disk first, then memory, then DB, then clear WAL**. At any crash point, the WAL has everything that didn't make it to the database.
+
+This is exactly what databases do internally — PostgreSQL writes to its own WAL before updating tables, and replays it on crash recovery.
+
+**Tradeoff:** WAL writes are synchronous (must block until data is on disk), which slows down the hot path. Fine for hundreds of messages per second, but becomes a bottleneck at thousands.
+
+### WAL doesn't work everywhere
+
+A local WAL file needs **persistent local disk**, which not all environments have:
+
+| Environment         | Local disk              | WAL viable?                                  |
+| ------------------- | ----------------------- | -------------------------------------------- |
+| Bare metal / VM     | Persistent              | Yes                                          |
+| ECS on EC2          | Survives task restarts  | Mostly — lost if EC2 instance dies           |
+| ECS on Fargate      | Ephemeral               | No — lost when task stops                    |
+| AWS Lambda          | `/tmp` is ephemeral     | No — lost when container is recycled         |
+
+When local disk isn't reliable, use a **managed durable buffer** — SQS, Kinesis, or Kafka. These are essentially managed WALs with consumer APIs:
+
+```
+Producer (ECS/Lambda):
+    on_message(record):
+        send to SQS/Kinesis                  ← durable, replicated, survives crashes
+
+Consumer (separate Lambda/ECS task):
+    triggered by batch of 10-25 messages
+    batch_insert(records)
+```
+
+SQS/Kinesis handle the batching for you — you configure a batch size and a max wait time, and the consumer is triggered when either threshold is reached. Same "size or time, whichever first" pattern, but AWS manages it.
+
+**Kafka vs database writes:** Kafka is fast because it's an append-only log — it just writes to the end of a file sequentially. No query parsing, no index updates, no B-tree lookups. A database INSERT does all of those. But Kafka is still a network round-trip to a separate service, so for simplicity, SQS/Kinesis is often good enough unless you need Kafka's ordering and throughput guarantees.
+
 ## Practical Summary
 
 1. **Threads share memory, processes don't** — shared memory is faster but requires synchronisation. Processes are safer but communication is expensive.
@@ -808,6 +899,12 @@ Go's advantage is that goroutines handle both cases transparently. You write the
 4. **False sharing is invisible** — two variables on the same cache line cause the same coherence traffic as two threads writing to the same variable. Pad your hot concurrent data.
 5. **Memory ordering is not guaranteed** — compilers and CPUs reorder operations. Use atomics, mutexes, or channels to establish happens-before relationships.
 6. **Every concurrency model is a tradeoff** — OS threads (simple, expensive), green threads (cheap, needs a runtime), event loops (no locks needed, no CPU parallelism), processes (fully isolated, expensive communication).
+7. **Cache lines are 64 bytes** — the smallest unit the cache loads or evicts. L1 holds ~512 lines, L2 ~4,096, L3 ~262,144. If your hot data fits in L1, everything runs at ~1 ns.
+8. **L1 is split into L1i (instructions) and L1d (data)** — 32 KB each, separate hardware. L2 and L3 are unified.
+9. **Loop order matters for cache performance** — walk memory sequentially (row-major) not strided. Swapping loop order on a large matrix can be a 5-10x difference.
+10. **I/O is almost always the bottleneck** — optimise database queries (indexes, eliminate N+1, cache) before optimising CPU code. Profile first.
+11. **Batch writes to reduce round-trips** — buffer records in memory, flush on size or time threshold. Each network round-trip costs ~1-5 ms regardless of payload size.
+12. **Use a WAL for crash resilience** — write to disk before memory, clear after successful DB write. When local disk isn't available (Lambda, Fargate), use a managed durable buffer (SQS, Kinesis, Kafka) instead.
 
 ## What's Next
 
