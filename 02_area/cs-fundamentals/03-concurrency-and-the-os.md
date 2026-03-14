@@ -432,6 +432,113 @@ Now each counter is on its own cache line. The goroutines no longer interfere wi
 
 You'll see this in Go's standard library — `sync.Pool` and the runtime scheduler use cache line padding internally.
 
+## Cache-Friendly Access Patterns
+
+Cache performance isn't only a concurrency concern. Even single-threaded code benefits hugely from accessing memory in patterns the cache is designed for.
+
+### Hot paths
+
+Not all code matters equally for performance. Most programs follow the 90/10 rule: 90% of the time is spent in 10% of the code. It doesn't matter if your program is 50 MB total if the inner loop that runs millions of times only touches 16 KB of data.
+
+The hot path is usually obvious from the code structure:
+
+- **Loops** — anything inside a loop that runs many times is hot. The tighter and more frequent, the hotter.
+- **Nested loops** — the innermost loop is usually the hottest. A doubly nested loop over 1000 elements runs the inner body 1,000,000 times.
+- **Request handlers in servers** — the code that runs on every incoming request is hot, the startup/config code is not.
+
+```go
+func main() {
+    config := loadConfig()          // runs once — cold
+    db := connectToDB()             // runs once — cold
+
+    http.HandleFunc("/api", func(w http.ResponseWriter, r *http.Request) {
+        user := parseRequest(r)     // runs per request — hot
+        result := queryDB(db, user) // runs per request — hot
+        json.Encode(w, result)      // runs per request — hot
+    })
+}
+```
+
+For anything non-obvious, you profile. In Go:
+
+```sh
+go test -cpuprofile cpu.prof -bench .
+go tool pprof cpu.prof
+```
+
+The profiler tells you exactly which functions consumed the most CPU time. The bottleneck is rarely where you expect — profile first, optimise second.
+
+### Matrix traversal — loop order matters
+
+In most languages (C, Go, Java), 2D arrays are stored **row-major** — each row is contiguous in memory:
+
+```
+matrix[0][0], matrix[0][1], matrix[0][2], ..., matrix[0][999]    ← row 0, contiguous
+matrix[1][0], matrix[1][1], matrix[1][2], ..., matrix[1][999]    ← row 1, contiguous
+```
+
+Walking within a row is fast — the inner loop moves sequentially through memory:
+
+```go
+// FAST — sequential memory access, cache-friendly
+for i := 0; i < 1000; i++ {        // each row
+    for j := 0; j < 1000; j++ {    // walk columns sequentially
+        matrix[i][j] += 1          // 8 bytes apart in memory
+    }
+}
+```
+
+The first access loads a cache line with 8 consecutive `int64` values. The next 7 accesses are free hits.
+
+Swapping the loop order is slow — each access jumps a whole row:
+
+```go
+// SLOW — strided access, cache-unfriendly
+for j := 0; j < 1000; j++ {        // each column
+    for i := 0; i < 1000; i++ {    // walk rows — jumping 8KB each time
+        matrix[i][j] += 1          // 8000 bytes apart in memory
+    }
+}
+```
+
+Each access lands on a different cache line. You load 64 bytes but only use 8, then jump to a completely different part of memory. Same computation, same result, just the loop order swapped — easily a **5-10x** performance difference on large matrices.
+
+### JavaScript doesn't have real 2D arrays
+
+In JavaScript, a "2D array" is an array of pointers to separate row objects scattered across the heap:
+
+```javascript
+const matrix = [];
+for (let i = 0; i < 1000; i++) {
+    matrix[i] = new Array(1000);
+}
+
+// matrix[i][j] = two lookups:
+//   1. follow pointer to find the row object
+//   2. index into the row
+```
+
+Walking within a row is still better than jumping between rows (each row's data is contiguous within itself), but you're paying a pointer dereference per row either way.
+
+For cache-friendly matrix operations in JavaScript, use a flat typed array:
+
+```javascript
+const matrix = new Float64Array(1000 * 1000);
+
+// Access [i][j] as:
+matrix[i * 1000 + j]  // one contiguous block, no pointers
+```
+
+`Float64Array` is a view over an `ArrayBuffer` — a fixed-size contiguous block of memory. This gives you the same layout as a C array. The tradeoff is it can't grow — if you need more space, you allocate a new bigger one and copy:
+
+```javascript
+const old = new Float64Array(1000);
+const bigger = new Float64Array(2000);
+bigger.set(old);  // copies old data into the beginning of bigger
+```
+
+This is the fundamental tradeoff: contiguous memory is fast but can't grow in place. A regular JavaScript array can grow because it uses pointers and indirection, which is exactly what makes it slower for sequential access.
+
 ## Atomics — Hardware-Level Synchronisation
 
 When two cores need to safely modify the same variable, the CPU provides **atomic instructions**. These are single instructions that the hardware guarantees will complete without interruption.
