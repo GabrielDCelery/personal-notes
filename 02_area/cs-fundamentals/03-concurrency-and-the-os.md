@@ -864,6 +864,39 @@ This is exactly what databases do internally — PostgreSQL writes to its own WA
 
 **Tradeoff:** WAL writes are synchronous (must block until data is on disk), which slows down the hot path. Fine for hundreds of messages per second, but becomes a bottleneck at thousands.
 
+### How expensive is a WAL write?
+
+A file write has two parts: the `write()` syscall and the `fsync()` to force data to physical disk.
+
+```
+write() syscall:           ~0.001ms  ← just copies to OS page cache in RAM
+fsync() to force to disk:  ~0.1-2ms (SSD), ~5-15ms (HDD)
+```
+
+Without `fsync()`, the data sits in an OS memory buffer. An application crash is fine (the OS buffer survives), but an OS crash or power loss loses the buffer. For a WAL to be truly durable, you need `fsync()`.
+
+In context of a typical request:
+
+```
+Handle request: 50ms total
+  ├── Parse body:         0.1ms
+  ├── Validate input:     0.01ms
+  ├── WAL append + fsync: 0.5-2ms   ← noticeable but small vs database
+  ├── Query database:    45ms       ← still dominates by 20x
+  ├── Transform result:   0.5ms
+  └── Serialize response: 0.2ms
+```
+
+File reads have similar variability depending on the page cache (see lesson 04 for details):
+
+```
+File read (page cache hit):        ~0.01-0.1ms   ← data already in RAM
+File read (page cache miss, SSD):  ~0.05-0.5ms   ← actual disk access
+File read (page cache miss, HDD):  ~5-10ms       ← physical seek
+```
+
+A WAL adds a couple of milliseconds at most on SSD — a reasonable tradeoff when the alternative is losing data on crash.
+
 ### WAL doesn't work everywhere
 
 A local WAL file needs **persistent local disk**, which not all environments have:
