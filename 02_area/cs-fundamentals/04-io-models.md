@@ -22,7 +22,7 @@ Your program runs in **user space**. It cannot touch hardware directly — no re
 │         │                       │
 │         ▼                       │
 │       Hardware                  │
-│  Disk, NIC, GPU, etc.          │
+│  Disk, NIC, GPU, etc.           │
 └─────────────────────────────────┘
 ```
 
