@@ -96,6 +96,8 @@ Every process thinks it has the entire address space to itself. When process A w
 
 This is why processes are isolated — they literally cannot address each other's memory. The hardware enforces it.
 
+The page table belongs to the **process**, not to individual threads. The kernel creates one page table per process and stores it in kernel memory (inaccessible from user mode). When the OS switches to a process, it writes that process's page table address into the CR3 register. Your process can't see or modify its own page table — that's why memory isolation works.
+
 Threads **within the same process** don't get this isolation because they share the same page table. If Thread 1 and Thread 2 both belong to Process A, then Thread 1 writing to `0x1000` and Thread 2 reading from `0x1000` are accessing the **same physical memory**. This is both the power and the danger of threads — they can share data easily, but one thread can corrupt another's data. Threads in different processes can't see each other's memory at all, just like the processes themselves.
 
 ## Context Switches — What Actually Happens
