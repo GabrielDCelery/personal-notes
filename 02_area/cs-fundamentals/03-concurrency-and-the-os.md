@@ -274,17 +274,62 @@ When your program makes a syscall (like `read()`), your thread doesn't get swapp
 A 4-core CPU has 4 independent pipelines, each with their own registers. Four threads can execute truly simultaneously — not time-sliced, actually running at the same instant on different hardware.
 
 ```
-Core 0          Core 1          Core 2          Core 3
-┌──────────┐   ┌──────────┐   ┌──────────┐   ┌──────────┐
-│ Thread A │   │ Thread B │   │ Thread C │   │ Thread D │
-│ own regs │   │ own regs │   │ own regs │   │ own regs │
-│ own L1   │   │ own L1   │   │ own L1   │   │ own L1   │
-│ own L2   │   │ own L2   │   │ own L2   │   │ own L2   │
-└─────┬────┘   └─────┬────┘   └─────┬────┘   └─────┬────┘
-      └──────────────┴──────────────┴──────────────┘
-                         Shared L3 cache
-                         Shared RAM
+Core 0              Core 1              Core 2              Core 3
+┌────────────────┐  ┌────────────────┐  ┌────────────────┐  ┌────────────────┐
+│ Thread A       │  │ Thread B       │  │ Thread C       │  │ Thread D       │
+│ own regs       │  │ own regs       │  │ own regs       │  │ own regs       │
+│ L1i 32K(instr) │  │ L1i 32K(instr) │  │ L1i 32K(instr) │  │ L1i 32K(instr) │
+│ L1d 32K(data)  │  │ L1d 32K(data)  │  │ L1d 32K(data)  │  │ L1d 32K(data)  │
+│ L2  256K       │  │ L2  256K       │  │ L2  256K       │  │ L2  256K       │
+└───────┬────────┘  └───────┬────────┘  └───────┬────────┘  └───────┬────────┘
+        └───────────────────┴───────────────────┴───────────────────┘
+                              Shared L3 cache
+                              Shared RAM
 ```
+
+### Cache structure per core
+
+L1 is not a single cache — it's two separate 32 KB caches, so 64 KB total per core. L2 and L3 are unified (instructions and data mixed together).
+
+```
+Per core:
+  L1i: 32 KB   ← instructions only  ┐ separate hardware, can be
+  L1d: 32 KB   ← data only          ┘ accessed simultaneously
+
+  L2:  256 KB  ← both instructions and data, mixed together
+
+Shared across all cores:
+  L3:  16 MB   ← both instructions and data, mixed together
+```
+
+The split only exists at L1 because the CPU needs to fetch instructions and data simultaneously on every cycle — two separate caches let it do both without contention. By L2 and L3 the access frequency is lower (only hit on L1 misses), so a single unified cache is simpler and adapts naturally — a program with lots of code but little data uses more of the cache for instructions, and vice versa.
+
+### Cache lines — the unit of caching
+
+The cache doesn't load individual bytes or variables. It loads fixed-size **64-byte blocks** called cache lines. This is the smallest unit the cache can load, store, or evict. Think of it like buying eggs — you can't buy one, you get the whole carton.
+
+```
+You want 8 bytes at address 0x1000
+
+Cache fetches 64 bytes: addresses 0x0FC0 through 0x0FFF
+├── your 8 bytes ──┤── 56 bytes of neighbours you didn't ask for ──┤
+```
+
+This works well because programs almost always access nearby memory right after (arrays, struct fields, sequential code) — **spatial locality**. Loading 64 bytes at once means the next few accesses are likely already cached.
+
+**Why 64 bytes specifically?** It's a tradeoff. Too small (8 bytes) and you'd miss on every adjacent access, paying full RAM latency each time. Too large (4 KB) and you waste cache space on data you never touch, evictions happen more often, and cache coherence gets worse — any write to any byte in that block invalidates the whole thing on other cores. 64 bytes has been the sweet spot on x86 since ~2000. Some architectures differ — Apple M-series uses 128 bytes for certain cache levels.
+
+**How many cache lines fit in each level:**
+
+```
+L1d:  32 KB / 64 bytes =    512 cache lines   (per core)
+L2:  256 KB / 64 bytes =  4,096 cache lines   (per core)
+L3:   16 MB / 64 bytes = 262,144 cache lines  (shared)
+```
+
+A single core can hold about 512 data "blocks" in its fastest memory. If your working data fits in those 512 lines, everything runs at ~1 ns. If it doesn't, you spill to L2 (~5 ns), L3 (~20 ns), or RAM (~100 ns).
+
+**Does small data guarantee L1 hits?** Mostly, but not perfectly. Even if your data fits in 32 KB, a few things displace cache lines: OS timer interrupts run handler code that evicts some of your lines, syscalls transition to kernel code that displaces L1 contents, and set associativity means a given address can only map to ~8 specific slots, so collisions can force evictions even when the cache isn't full. But a tight loop over a small array is the ideal case — almost entirely L1 hits.
 
 Each core has private L1 and L2 caches. L3 and RAM are shared. This creates a problem: what happens when Core 0 and Core 1 both cache the same memory address, and Core 0 writes to it?
 
