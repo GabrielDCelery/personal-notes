@@ -124,7 +124,9 @@ The registers are saved and restored as an opaque blob — the OS doesn't know w
 Same as above, plus:
 
 ```
-8. Switch page tables (CR3 register on x86)
+8. Switch page tables — CR3 is a CPU register that holds the address
+   (pointer) of the current page table in RAM. Writing a new address
+   to CR3 switches the entire memory mapping to a different process.
 9. TLB (Translation Lookaside Buffer) is flushed
    — TLB caches virtual→physical address translations
    — new process has different translations, old ones are useless
@@ -136,6 +138,16 @@ Cost: ~10-50 us (more expensive due to TLB flush)
 **Why does a process switch need a TLB flush but a thread switch doesn't?** The TLB caches "virtual address X maps to physical address Y." Threads in the same process share the same page table — the same mappings. So when you swap Thread 1 for Thread 2 in the same process, address `0x1000` still maps to the same physical location. The TLB entries are still correct.
 
 When you switch to a different process, the mappings are completely different. Process A's `0x1000` and Process B's `0x1000` point to different physical memory. If the TLB still had Process A's mappings, Process B would read Process A's data. So the CPU flushes the entire TLB, and Process B starts cold — paying ~100 ns per memory access until the TLB warms up again.
+
+**Why not tag TLB entries with a process ID?** Modern CPUs do this — Intel calls it **PCID** (Process Context ID). Each TLB entry stores a process tag alongside the translation, so entries from different processes can coexist without confusion. With PCID, the CPU checks both the virtual address and the tag, so Process B can't accidentally hit Process A's entries — no flush needed.
+
+But there are limits: PCID is only 12 bits (4096 possible tags), the TLB is small (~1000-2000 entries total so entries from old processes take up space), and Linux only started using PCID properly around kernel 4.15 (2018). So PCID reduces the TLB flush cost rather than eliminating it entirely, and older systems still do full flushes.
+
+### Why does a thread switch need the kernel?
+
+The OS scheduler is kernel code — it needs privileged access to all threads' data structures, CPU timer hardware, and control over which thread runs next. User mode code can't do any of this, so every thread context switch must enter kernel mode, run the scheduler, and return to user mode. This mode switching costs ~400 ns and pollutes the L1 cache with kernel code.
+
+This is exactly what goroutines avoid. The Go runtime scheduler is regular user mode code — it only manages goroutines within your own process, so it doesn't need privileged access. No mode switch, no kernel involvement.
 
 ### Voluntary vs involuntary
 
@@ -268,6 +280,18 @@ ps aux | grep '\[.*\]'
 ```
 
 When your program makes a syscall (like `read()`), your thread doesn't get swapped out. Instead, the CPU switches from user mode to kernel mode — your thread temporarily runs kernel code, does the privileged work, then switches back to user mode. Same thread, same registers, no swap. This costs ~200 ns (mode switch) vs ~10 us (full context switch).
+
+### Root is not kernel mode
+
+Running as root does **not** change the CPU privilege level. Root is an OS-level permission concept — the kernel trusts you more, but your code still runs in ring 3 (user mode) and still makes syscalls to ask the kernel for things.
+
+```
+Regular user:  ring 3 → syscall → kernel checks permissions → often "denied"
+Root:          ring 3 → syscall → kernel checks permissions → usually "allowed"
+Kernel code:   ring 0 → no syscall needed, direct hardware access
+```
+
+Root changes what the **kernel lets you do** when you ask. The CPU's hardware privilege check (ring 0 vs ring 3) is unchanged — a root program still can't write to CR3 or execute privileged instructions directly. It still has to ask the kernel through syscalls, the kernel just says yes more often.
 
 ## Multiple Cores — True Parallelism
 
@@ -510,7 +534,7 @@ In JavaScript, a "2D array" is an array of pointers to separate row objects scat
 ```javascript
 const matrix = [];
 for (let i = 0; i < 1000; i++) {
-    matrix[i] = new Array(1000);
+  matrix[i] = new Array(1000);
 }
 
 // matrix[i][j] = two lookups:
@@ -526,7 +550,7 @@ For cache-friendly matrix operations in JavaScript, use a flat typed array:
 const matrix = new Float64Array(1000 * 1000);
 
 // Access [i][j] as:
-matrix[i * 1000 + j]  // one contiguous block, no pointers
+matrix[i * 1000 + j]; // one contiguous block, no pointers
 ```
 
 `Float64Array` is a view over an `ArrayBuffer` — a fixed-size contiguous block of memory. This gives you the same layout as a C array. The tradeoff is it can't grow — if you need more space, you allocate a new bigger one and copy:
@@ -534,7 +558,7 @@ matrix[i * 1000 + j]  // one contiguous block, no pointers
 ```javascript
 const old = new Float64Array(1000);
 const bigger = new Float64Array(2000);
-bigger.set(old);  // copies old data into the beginning of bigger
+bigger.set(old); // copies old data into the beginning of bigger
 ```
 
 This is the fundamental tradeoff: contiguous memory is fast but can't grow in place. A regular JavaScript array can grow because it uses pointers and indirection, which is exactly what makes it slower for sequential access.
@@ -701,7 +725,85 @@ Goroutine 6 ─┘
 | Context switch | ~1-10 us (kernel) | ~100-200 ns (userspace, no syscall) |
 | Count limit    | Thousands         | Millions                            |
 
-Goroutine context switches are cheap because Go's runtime does them in userspace — it saves and restores registers without entering the kernel. The runtime knows when a goroutine blocks (channel, I/O, mutex) and swaps in another goroutine on the same OS thread.
+#### What is a goroutine at the hardware level?
+
+A goroutine is the same concept as a thread — a saved set of register values and a stack. The difference is who manages it and where the stack lives.
+
+An OS thread gets a 1 MB stack allocated by the OS and has all its registers (GP + FPU + SSE/AVX = hundreds of bytes) saved by the kernel on every context switch. A goroutine gets a 4 KB stack allocated by the Go runtime **on the heap** and only the registers Go's compiler actually uses are saved — by regular userspace code, not the kernel.
+
+```
+OS thread stack:         Goroutine stack:
+┌──────────────────┐     ┌──────┐ → ┌──────────┐ → ┌────────────────┐
+│                  │     │ 4 KB │   │ 8 KB     │   │ 16 KB          │
+│    1 MB          │     └──────┘   └──────────┘   └────────────────┘
+│    (fixed)       │     initial     needs more     grows as needed
+│                  │                 runtime copies  (allocated on heap)
+└──────────────────┘
+```
+
+Goroutines run **on** OS threads. The Go runtime creates a pool of OS threads (typically one per core). Each OS thread runs goroutines one at a time — at any instant, the physical CPU registers belong to one goroutine. All other goroutines have their register values saved in a struct in heap memory.
+
+```
+Core 0                          Core 1
+  │                               │
+OS Thread (M0)                  OS Thread (M1)
+  │                               │
+  ├── run goroutine G1            ├── run goroutine G4
+  │   (G1's registers in CPU)     │
+  │                               ├── G4 blocks on I/O
+  ├── G1 blocks on channel        │   save G4's registers to struct
+  │   save G1's registers         │   load G5's registers into CPU
+  │   load G2's registers         ├── run goroutine G5
+  ├── run goroutine G2            │
+```
+
+#### Why goroutine switches are faster — it's not the register swap
+
+The register save/restore is the same cost (~10 ns). The expensive part of an OS thread switch is everything around it:
+
+| Cost                        | OS thread switch (~1-10 us) | Goroutine switch (~100-200 ns) |
+| --------------------------- | --------------------------- | ------------------------------ |
+| Trigger                     | Hardware interrupt (trap)   | Checkpoint (function call)     |
+| Mode switch                 | User → kernel → user ~400ns | None (stays in user mode)      |
+| Register save/restore       | All (~hundreds) ~10 ns      | Only ones Go uses ~10 ns       |
+| Scheduler                   | Complex, with locks ~200ns  | Simple queue pick ~10-50 ns    |
+| Cache pollution from kernel | Yes                         | No                             |
+| TLB flush                   | Sometimes (process switch)  | Never (same process)           |
+
+The register swap is ~5% of the cost. The other 95% is kernel overhead that goroutines avoid entirely.
+
+#### Why goroutines don't flush the TLB
+
+All goroutines belong to the **same process**, so they share the same page table. CR3 (the register pointing to the active page table) doesn't change on a goroutine switch, which means all TLB entries remain valid. The full picture:
+
+```
+Process switch:
+  ✗ Save all registers
+  ✗ User mode → kernel mode → user mode
+  ✗ Change CR3 (switch page table)
+  ✗ Flush TLB → cold cache, ~100 ns per access until warm
+
+Thread switch (same process):
+  ✗ Save all registers
+  ✗ User mode → kernel mode → user mode
+  ✓ CR3 stays the same — same process, same page table
+  ✓ TLB stays valid
+
+Goroutine switch:
+  ✓ Save only a few registers
+  ✓ Stays in user mode — no kernel involvement
+  ✓ CR3 stays the same — same process, same page table
+  ✓ TLB stays valid
+  ✓ L1 cache stays warm — no kernel code polluting it
+```
+
+A goroutine switch only does the one thing it absolutely must — swap the register values. Everything else stays the same.
+
+#### When does the Go runtime swap goroutines?
+
+The OS uses a timer interrupt to preempt threads. The Go runtime inserts **checkpoints** into your code at compile time — at function calls, loop iterations, channel operations, I/O, and memory allocation. When a goroutine hits a checkpoint and the scheduler decides to swap, it saves registers, picks the next goroutine from a queue, loads its registers, and continues — all in userspace.
+
+Since Go 1.14, the runtime also uses OS signals for preemption, so a goroutine stuck in a tight loop without checkpoints can still be interrupted.
 
 This is why Go is good at network services — you can have one goroutine per connection (millions) without worrying about thread overhead.
 
@@ -901,12 +1003,12 @@ A WAL adds a couple of milliseconds at most on SSD — a reasonable tradeoff whe
 
 A local WAL file needs **persistent local disk**, which not all environments have:
 
-| Environment         | Local disk              | WAL viable?                                  |
-| ------------------- | ----------------------- | -------------------------------------------- |
-| Bare metal / VM     | Persistent              | Yes                                          |
-| ECS on EC2          | Survives task restarts  | Mostly — lost if EC2 instance dies           |
-| ECS on Fargate      | Ephemeral               | No — lost when task stops                    |
-| AWS Lambda          | `/tmp` is ephemeral     | No — lost when container is recycled         |
+| Environment     | Local disk             | WAL viable?                          |
+| --------------- | ---------------------- | ------------------------------------ |
+| Bare metal / VM | Persistent             | Yes                                  |
+| ECS on EC2      | Survives task restarts | Mostly — lost if EC2 instance dies   |
+| ECS on Fargate  | Ephemeral              | No — lost when task stops            |
+| AWS Lambda      | `/tmp` is ephemeral    | No — lost when container is recycled |
 
 When local disk isn't reliable, use a **managed durable buffer** — SQS, Kinesis, or Kafka. These are essentially managed WALs with consumer APIs:
 
