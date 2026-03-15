@@ -135,10 +135,12 @@ This is the problem that drove the invention of non-blocking I/O and event loops
 
 ## Non-Blocking I/O — Don't Sleep, Check Later
 
-Instead of blocking, you can tell the OS: "if there's no data, return immediately and tell me there's nothing."
+With blocking I/O, a thread that calls `read()` with no data available just sleeps — it can't do anything else until data arrives. Non-blocking I/O changes that: `read()` returns immediately with `EWOULDBLOCK` instead of sleeping, so the thread stays free.
+
+This isn't a mode the thread switches into — it's a **flag on the socket** itself (`O_NONBLOCK`, set via `fcntl(fd, F_SETFL, O_NONBLOCK)`). Once the flag is set on a socket, any thread calling `read()` on it will get the non-blocking behaviour.
 
 ```
-Thread:     read(socket, buf, 1024)  ← socket set to non-blocking
+Thread:     read(socket, buf, 1024)  ← socket has O_NONBLOCK flag set
                │
                ▼
             Returns immediately: EWOULDBLOCK (no data yet)
@@ -159,7 +161,7 @@ The thread gets control back immediately and can do anything. But the naive appr
 
 Non-blocking I/O alone doesn't solve the scalability problem. Its real purpose is to be used **in combination with epoll** (see next section). The pattern is:
 
-1. Set sockets to non-blocking mode
+1. Set the socket's `O_NONBLOCK` flag
 2. Use `epoll_wait()` to block cheaply until the kernel signals which sockets have data
 3. Call `read()` only on those sockets — since epoll confirmed they're ready, `read()` won't block
 
@@ -169,7 +171,7 @@ You need a way to say: "tell me when ANY of my 10,000 sockets have data."
 
 ## I/O Multiplexing — Watching Many Sockets at Once
 
-The core idea: instead of one thread per connection, one thread watches all connections and only acts when something is ready.
+The core idea: instead of one thread per connection, one thread sleeps until the kernel wakes it — and when it wakes, it only acts on connections that are ready.
 
 The difference between `select` and `epoll` comes down to **who does the work of finding what's ready**.
 
@@ -242,7 +244,7 @@ console.log(data);
 A Node.js server handling 10,000 concurrent connections uses:
 
 - 1 thread for JavaScript
-- 1 `epoll_wait()` monitoring 10,000 sockets
+- 1 thread sleeping in `epoll_wait()`, registered against 10,000 sockets
 - ~0 idle threads
 
 A traditional Java server handling 10,000 connections uses:
@@ -255,7 +257,9 @@ The Node.js approach uses orders of magnitude less memory and zero context switc
 
 ### What about file I/O and DNS?
 
-Disk reads and DNS lookups don't support epoll well on Linux. libuv uses a **thread pool** (default 4 threads) for these:
+For network I/O, the NIC fires a hardware interrupt when data arrives — epoll hooks into that. Disk reads have no equivalent: there's no interrupt the kernel can cleanly expose through epoll, it just blocks. DNS is the same problem — the standard resolver (`getaddrinfo`) is a synchronous blocking call with no async interface.
+
+libuv works around this with a **thread pool** (default 4 threads). These worker threads do the blocking syscall while the event loop thread stays free. When the worker finishes, it queues the callback back onto the event loop.
 
 ```
 Event loop thread:
@@ -263,7 +267,7 @@ Event loop thread:
     │
     ▼
   Thread pool (OS threads):
-    Thread 1: read('big.csv') ← blocking read, but on a worker thread
+    Thread 1: read('big.csv') ← blocking syscall on a worker thread
     Thread 2: (available)
     Thread 3: (available)
     Thread 4: (available)
@@ -275,6 +279,16 @@ Event loop thread:
 ```
 
 This is why Node.js isn't truly single-threaded — it has worker threads for operations that can't be made async at the OS level. But your JavaScript code only runs on one thread.
+
+The pool also handles CPU-bound crypto operations (`crypto.pbkdf2`, `crypto.scrypt`) since running those on the event loop thread would stall all other connections.
+
+If you exhaust the 4 threads — many concurrent file reads, DNS lookups, or crypto calls queuing up — operations wait for a free worker. The event loop stays responsive but I/O latency climbs. You can increase the pool size via the `UV_THREADPOOL_SIZE` environment variable (max 1024, but beyond your CPU core count you're just adding context switch overhead):
+
+```sh
+UV_THREADPOOL_SIZE=16 node app.js
+```
+
+`io_uring` (Linux 5.1, 2019) finally gave the kernel a proper async disk I/O interface — submit an operation, get notified when done, no thread blocked. libuv has been gradually adopting it, which could eventually make the thread pool unnecessary for disk I/O.
 
 ## How Go Handles I/O — The Best of Both Worlds
 
@@ -335,7 +349,7 @@ Thread.startVirtualThread(() -> {
 });
 ```
 
-Virtual threads are managed by the JVM, not the OS. When a virtual thread blocks on I/O, the JVM unmounts it from the OS thread (called a "carrier thread") and mounts a different virtual thread. Same idea as Go's goroutines.
+Virtual threads are managed by the JVM, not the OS. When a virtual thread blocks on I/O, the JVM unmounts it from the OS thread (called a "carrier thread") and mounts a different virtual thread. Same idea as Go's goroutines — you write sequential blocking-style code, the runtime handles the multiplexing via epoll underneath.
 
 |              | OS Thread        | Virtual Thread (Java 21) | Goroutine (Go)         |
 | ------------ | ---------------- | ------------------------ | ---------------------- |
@@ -343,6 +357,55 @@ Virtual threads are managed by the JVM, not the OS. When a virtual thread blocks
 | Scheduling   | OS kernel        | JVM runtime              | Go runtime             |
 | I/O blocking | Blocks OS thread | Parks, frees OS thread   | Parks, frees OS thread |
 | Count        | Thousands        | Millions                 | Millions               |
+
+### Java vs Go — practical differences
+
+The concurrency model is now essentially the same. The remaining gaps are operational:
+
+- **Startup time** — Go starts in milliseconds. The JVM takes seconds to initialise. Matters a lot for Lambda and containers that scale to zero.
+- **Memory footprint** — A Go service might use 20 MB. An equivalent Java service carries the JVM heap, metaspace, and GC overhead — often 200 MB+.
+- **Deployment** — Go compiles to a single static binary. Java requires the JVM runtime.
+
+**JIT vs native compilation** isn't as clear-cut as it sounds. HotSpot's JIT has decades of optimisation and uses runtime profiling data — warmed-up Java throughput can match or exceed Go for raw CPU work. The JVM's weakness is the warmup period and the memory cost to get there, not peak throughput.
+
+**GraalVM Native Image** compiles Java to native (like Go), eliminating startup time and memory overhead. The tradeoff: you lose JIT's runtime profiling advantages, and some older libraries that rely on reflection or dynamic class loading break.
+
+Virtual threads were also **retrofitted** onto an existing ecosystem built around OS threads. Most standard library code works transparently, but older libraries using `synchronized` blocks or `ThreadLocal` can behave unexpectedly — they were written assuming one OS thread per task, which virtual threads violate.
+
+## Go vs Java 21 vs Node.js
+
+With Java 21 and Go both using M:N scheduling over epoll, the more interesting comparison is how all three handle the combination of I/O concurrency and CPU work.
+
+**Node.js is the odd one out.** Go and Java distribute work across all CPU cores transparently — goroutines and virtual threads run on a pool of OS threads equal to the core count. Node.js runs JavaScript on a **single thread**. No matter how efficiently epoll handles I/O, any CPU work blocks everything else. A 50 ms bcrypt call stalls all 10,000 connections.
+
+Node.js has `worker_threads` for parallelism, but it's architecturally awkward:
+
+- Each worker spins up a full V8 engine — separate heap, separate GC, several MB overhead just to exist
+- You can't share JavaScript objects between threads — you must `postMessage(data)`, which serialises the object (deep copy), sends the bytes, and the receiver deserialises it back
+- For large data this copying is expensive, often costing more than the parallelism saves
+- You have to explicitly identify CPU-bound work and plumb the offloading yourself — the runtime never does it automatically
+
+```
+Go / Java:    goroutine/virtual thread ──► any available OS thread (shared heap, pointer passing)
+Node.js:      main thread ──postMessage──► worker (full V8, serialised copy)
+```
+
+In practice, Node.js worker threads make sense for genuinely heavy isolated work — image processing, video encoding, complex cryptography. For typical web server tasks like JSON parsing, the serialisation round-trip costs more than the parallelism saves.
+
+|                   | Node.js                       | Go                       | Java 21                   |
+| ----------------- | ----------------------------- | ------------------------ | ------------------------- |
+| Concurrency model | Event loop (single JS thread) | Goroutines (M:N)         | Virtual threads (M:N)     |
+| CPU parallelism   | No — single JS thread         | Yes — GOMAXPROCS threads | Yes — carrier threads     |
+| Cross-thread data | Serialised copy (postMessage) | Shared memory (pointer)  | Shared memory (pointer)   |
+| Memory            | Moderate (V8)                 | Lean                     | Heavy (JVM)               |
+| Startup           | Fast                          | Very fast                | Slow (GraalVM fixes this) |
+| Code style        | async/await required          | Sequential               | Sequential                |
+
+**Where Node.js still wins:** npm ecosystem size, sharing code between frontend and backend, and pure I/O-heavy services where CPU is never the bottleneck.
+
+**Where Go wins over Java:** startup time, memory footprint, single static binary, and a runtime designed around goroutines from day one rather than retrofitted.
+
+**For long-running I/O-bound services**, all three are now competitive on throughput. The choice comes down to ecosystem, operational characteristics, and whether CPU parallelism matters for your workload.
 
 ## Python's async/await — asyncio
 
