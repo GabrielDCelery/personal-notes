@@ -155,46 +155,48 @@ Thread:     read(socket, buf, 1024)  ← socket set to non-blocking
             Returns 47 bytes of data!
 ```
 
-This is better — the thread doesn't sleep. But polling in a loop (busy waiting) wastes CPU. You need a way to say: "tell me when ANY of my 10,000 sockets have data."
+The thread gets control back immediately and can do anything. But the naive approach — calling `read()` in a tight loop until data arrives — is **busy polling**. The thread burns 100% CPU hammering the kernel with syscalls while doing no real work.
+
+Non-blocking I/O alone doesn't solve the scalability problem. Its real purpose is to be used **in combination with epoll** (see next section). The pattern is:
+
+1. Set sockets to non-blocking mode
+2. Use `epoll_wait()` to block cheaply until the kernel signals which sockets have data
+3. Call `read()` only on those sockets — since epoll confirmed they're ready, `read()` won't block
+
+Non-blocking mode then acts as a **safety net**: if there's ever a race condition where you call `read()` on a socket that turns out not to be ready, you get `EWOULDBLOCK` instead of your thread hanging unexpectedly.
+
+You need a way to say: "tell me when ANY of my 10,000 sockets have data."
 
 ## I/O Multiplexing — Watching Many Sockets at Once
 
-The OS provides system calls that let one thread monitor thousands of file descriptors simultaneously.
+The core idea: instead of one thread per connection, one thread watches all connections and only acts when something is ready.
 
-### Evolution on Linux
+The difference between `select` and `epoll` comes down to **who does the work of finding what's ready**.
 
-| Mechanism         | How it works                                 | Limitation                                 |
-| ----------------- | -------------------------------------------- | ------------------------------------------ |
-| `select()` (1983) | Pass a set of fds, blocks until one is ready | Max 1024 fds, scans entire set every time  |
-| `poll()` (1986)   | Same idea, no fd limit                       | Still scans entire set — O(n) per call     |
-| `epoll` (2002)    | Register fds once, kernel tracks them        | O(1) per event — scales to millions of fds |
+### select — you ask, kernel scans
 
-macOS/BSD uses `kqueue` (similar to epoll). Windows uses `IOCP` (I/O Completion Ports).
+With `select`, you hand the kernel your full list of sockets on every call. The kernel scans the entire list, marks the ready ones, and hands it back. You then scan through it yourself to find them. 10,000 sockets means 10,000 checks — every single call, even if only one socket has data. It also has a hard limit of 1024 fds.
 
-### How epoll works
+`poll()` removed the 1024 limit but kept the same scanning behaviour.
+
+### epoll — kernel tells you
+
+With epoll, you register your sockets once. The kernel attaches callbacks to each socket's receive buffer — when a packet arrives and the NIC fires its interrupt, the kernel's network stack processes it and the callback fires, adding that socket to a **ready list**. Your thread sleeps in `epoll_wait()` — genuinely sleeping, consuming zero CPU — and the kernel wakes it up as soon as the ready list is non-empty.
+
+The result: `epoll_wait()` returns only the sockets that actually have data. The kernel never scans. Your thread never polls. It wakes up precisely when there is work to do.
 
 ```
-1. Create an epoll instance:
-   epfd = epoll_create()
-
-2. Register sockets you care about:
-   epoll_ctl(epfd, ADD, socket_A, {EPOLLIN})   // tell me when A has data
-   epoll_ctl(epfd, ADD, socket_B, {EPOLLIN})   // tell me when B has data
-   epoll_ctl(epfd, ADD, socket_C, {EPOLLIN})   // tell me when C has data
-
-3. Wait for events:
-   events = epoll_wait(epfd, ...)   // blocks until at least one socket is ready
-   // returns: [{socket_A, READABLE}, {socket_C, READABLE}]
-   // socket_B has no data — not in the list
-
-4. Process only the ready sockets:
-   read(socket_A, ...)   // guaranteed not to block
-   read(socket_C, ...)   // guaranteed not to block
-
-5. Go back to step 3
+select:  you ──ask──► kernel scans everything ──► you scan results
+epoll:   kernel watches ──► interrupt fires ──► kernel wakes you ──► you act
 ```
 
-One thread, one `epoll_wait()` call, handles thousands of connections. The kernel does the work of tracking which sockets have data — you only process the ones that are ready.
+|                   | `select`                    | `epoll`                           |
+| ----------------- | --------------------------- | --------------------------------- |
+| fd limit          | 1024                        | millions                          |
+| kernel work       | O(n) scan on every call     | O(1) — callback-driven ready list |
+| what you get back | full set, ready ones marked | only the ready fds                |
+
+macOS/BSD uses `kqueue` (same idea as epoll). Windows uses `IOCP`.
 
 ## The Event Loop — How Node.js Works
 
