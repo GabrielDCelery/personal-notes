@@ -357,6 +357,95 @@ fn main() {
 
 **Cons**: the compiler is strict. Code that would be fine in Go or Java gets rejected. You spend time satisfying the borrow checker. The learning curve is steep.
 
+## GC Pressure — When the Garbage Collector Becomes the Bottleneck
+
+GC pressure happens when your program allocates faster than the GC can collect. The GC triggers when the heap reaches a threshold (Go default: heap doubles since last collection). Allocate rapidly and it fires constantly.
+
+**Why lots of strings cause it**
+
+Every string in Go is a heap allocation. The naive approach to processing a line of text creates several per line:
+
+```go
+line := scanner.Text()             // heap alloc: new string
+parts := strings.Split(line, ";")  // heap alloc: new slice + new strings
+```
+
+For a billion lines that's billions of allocations. Even if each string becomes garbage immediately, you're constantly filling the heap and triggering collection.
+
+**Why you can't just wait longer**
+
+You can delay GC with `GOGC` — but the real cost isn't frequency, it's **live objects**. If you're accumulating results in a `map[string]Stats`, every unique key is a live heap object the GC must trace every cycle. 10,000 station names = 10,000 objects visited every collection regardless of how long you wait. A bigger heap also means a longer sweep phase.
+
+**How to reduce allocations in the hot path**
+
+The goal is fewer heap allocations, not GC tuning.
+
+`scanner.Bytes()` vs `scanner.Text()` — the scanner has one internal buffer allocated once at creation. `Bytes()` returns a slice into that buffer (no alloc per line). `Text()` copies each line into a new heap string:
+
+```go
+line := scanner.Bytes()  // slice into scanner's buffer — no alloc
+                         // only valid until next Scan()
+```
+
+Parse in place instead of splitting:
+```go
+// strings.Split allocates a new slice and new strings
+parts := strings.Split(line, ";")          // ✗
+
+// find delimiter, slice existing bytes — no alloc
+i := bytes.IndexByte(line, ';')
+name, temp := line[:i], line[i+1:]         // ✓
+```
+
+Reuse buffers with `sync.Pool`:
+```go
+var pool = sync.Pool{New: func() any { return make([]byte, 0, 128) }}
+buf := pool.Get().([]byte)
+// use buf...
+pool.Put(buf[:0])  // return it, reset length, keep capacity
+```
+
+For batch jobs, disable GC entirely — let the heap grow, finish, exit:
+```go
+GOGC=off go run main.go
+```
+
+**Chunked reading with a buffer pool**
+
+If mmap isn't available, read large chunks into a pool of pre-allocated buffers. Goroutines take slices of stable buffer memory — no string copies needed for map keys:
+
+```go
+pool := make(chan []byte, 4)
+for i := 0; i < 4; i++ {
+    pool <- make([]byte, 32*1024*1024)  // 4 × 32 MB buffers
+}
+
+go func() {
+    for {
+        buf := <-pool
+        n := readUntilNewline(f, buf)
+        if n == 0 { break }
+        go func(b, original []byte) {
+            process(b)        // slices of b are stable — no copies needed
+            pool <- original  // return full buffer when done
+        }(buf[:n], buf)       // both passed as parameters — safe from closure capture bug
+    }
+}()
+```
+
+Note: chunk boundaries rarely fall on newlines — read up to the last `\n` in each chunk and carry the partial line forward.
+
+**mmap as the elegant solution for files**
+
+mmap maps the file directly into the process's virtual address space — the entire file is stable memory for the life of the mapping. Slices into it are valid without copying:
+
+```go
+data, _ := syscall.Mmap(int(f.Fd()), 0, int(fi.Size()), syscall.PROT_READ, syscall.MAP_SHARED)
+name := data[start:end]  // zero copy, stable, safe as a map key
+```
+
+The OS handles readahead automatically for sequential access. Combined with `GOGC=off`, this is why the top solutions to the 1 Billion Row Challenge in Go have almost no GC activity — there is nearly nothing to collect.
+
 ## Comparison Across Languages
 
 | Language   | Strategy                            | Runtime cost                             | Safety             | Ease of use                            |

@@ -512,17 +512,51 @@ free -h
 
 ### mmap — Mapping files directly into memory
 
-Instead of read() (kernel copies data to your buffer), you can map the file into your address space:
+`read()` copies data from the page cache into your userspace buffer — two copies: disk → page cache → your buffer. `mmap()` skips the second copy entirely by mapping the file directly into your process's virtual address space.
 
 ```go
-data, _ := syscall.Mmap(fd, 0, fileSize, syscall.PROT_READ, syscall.MAP_PRIVATE)
-// data is now a []byte that IS the file
-// accessing data[i] triggers a page fault if not in page cache
-// kernel loads the page from disk, maps it into your address space
-// no copy — you're reading directly from the page cache
+data, _ := syscall.Mmap(int(f.Fd()), 0, int(fi.Size()), syscall.PROT_READ, syscall.MAP_SHARED)
+// data is a []byte — the entire file
+// no data has moved yet
 ```
 
-This avoids the kernel → userspace copy. It's useful for large files you access randomly (databases use this extensively). The downside: page faults are handled by the kernel and can block unpredictably.
+When you call `mmap()`, the kernel carves out a region of your virtual address space and associates it with the file. No data is loaded. Page table entries for that region are marked **not present**.
+
+When you first access `data[1000]`:
+
+```
+your code:  data[1000]  ← memory read
+MMU:        looks up page table → "not present" → page fault
+kernel:     checks page cache
+            hit  → maps page cache page into your page table → resume
+            miss → reads from disk → caches it → maps it → resume
+your code:  gets the byte — reading directly from page cache, no copy
+```
+
+Subsequent accesses to the same page are just memory reads — no syscall, no copy, no fault.
+
+```
+read():   disk → page cache → copy to your buffer   (kernel copies to userspace)
+mmap():   disk → page cache → page table maps to it  (you read directly from cache)
+```
+
+Sequential access triggers OS **readahead** — the kernel notices the pattern and pre-loads pages before you fault on them.
+
+### mmap vs read() — when to use each
+
+mmap is not always better:
+
+| Situation | Prefer |
+|---|---|
+| Large read-only file, sequential scan | mmap |
+| Need zero-copy slices as map keys | mmap |
+| Small files | read() — page fault overhead not worth it |
+| Streaming / network data | read() — mmap only works on files |
+| Write-heavy with ordering requirements | read() — `msync()` complexity |
+| Random access on very large files with low RAM | read() — explicit control over what's loaded |
+| Need predictable error handling | read() — disk errors become SIGBUS with mmap, killing the process |
+
+TLB pressure is also a real concern with mmap — each mapped region consumes TLB entries (the CPU's cache for page table lookups). Map enough large files and TLB misses start hurting performance. This is why some databases (PostgreSQL, newer SQLite) have moved away from heavy mmap use.
 
 ## Practical Summary
 
