@@ -17,7 +17,7 @@ These are approximate, but stable across years of hardware. Memorise the order o
 | SSD random read                       | 100 us     | 1,000x slower than RAM            |
 | SSD sequential read (1 MB)            | 1 ms       |                                   |
 | HDD random read                       | 5-10 ms    | Seek time dominates               |
-| HDD sequential read (1 MB)            | 5 ms       |                                   |
+| HDD sequential read (1 MB)            | 5-10 ms    |                                   |
 | Network round trip (same data centre) | 0.5 ms     | Same region                       |
 | Network round trip (cross-region)     | 50-100 ms  | EU to US, depends on distance     |
 | Network round trip (cross-ocean)      | 150-300 ms | EU to Asia, worst case            |
@@ -246,11 +246,11 @@ This hierarchy is why the database is almost always the bottleneck. Your app ser
 | Memcached SET                  | 100,000-400,000 ops/sec    | No persistence, pure memory                  |
 | **Queues (produce/write)**     |                            |                                              |
 | Kafka produce (single broker)  | 100,000-500,000 msgs/sec   | Depends on message size, replication         |
-| SQS SendMessage                | 3,000 msgs/sec (standard)  | Nearly unlimited with batching               |
+| SQS SendMessage (standard)     | ~unlimited                 | FIFO queues: 300/sec, 3,000/sec with batching |
 | **Queues (consume/read)**      |                            |                                              |
 | Kafka consume (per partition)  | 10,000-50,000 msgs/sec     | Single consumer throughput                   |
 | Kafka consume (consumer group) | 100,000-500,000 msgs/sec   | Scales with partitions                       |
-| SQS ReceiveMessage             | 3,000 msgs/sec (standard)  | Scale with multiple consumers                |
+| SQS ReceiveMessage (standard)  | ~unlimited                 | FIFO queues: 300/sec; scale with consumers   |
 | **App servers**                |                            |                                              |
 | Nginx (static/proxy)           | 50,000-100,000 req/sec     | Simple proxy, no heavy processing            |
 | Node.js (HTTP, I/O-bound)      | 10,000-30,000 req/sec      | Simple JSON API, no heavy computation        |
@@ -288,12 +288,12 @@ These are ballpark numbers for a single node with decent hardware (4-8 cores, 16
                     │          │          │          │          │          │
   QUEUES (produce)
   Kafka (broker)    ·          ·          ·          ·     ├────██████████████████──→
-  SQS send          ├──█──┤    ·          ·          ·          ·          ·
+  SQS (standard)    ·          ·          ·     ← nearly unlimited (standard) →
                     │          │          │          │          │          │
   QUEUES (consume)
   Kafka (partition) ·          · ├───████████████████████──┤    ·          ·
   Kafka (group)     ·          ·          ·          ·     ├────██████████████████──→
-  SQS receive       ├──█──┤    ·          ·          ·          ·          ·
+  SQS (standard)    ·          ·          ·     ← nearly unlimited (standard) →
                     │          │          │          │          │          │
   APP SERVERS
   Node.js           ·          ·├──████████████████──┤          ·          ·
@@ -391,6 +391,30 @@ Most web applications don't need to worry about app server throughput. A single 
 
 That's nothing. A single app server handles this with 99% of its capacity idle. The bottleneck is almost always the database, not the app server.
 
+### The simple throughput model
+
+The same 10x jumps from the latency tiers appear in throughput — just in reverse:
+
+| Tier       | Throughput    | Anchor      |
+| ---------- | ------------- | ----------- |
+| DB writes  | ~1,000/sec    | 10^3        |
+| DB reads   | ~10,000/sec   | 10x writes  |
+| Cache ops  | ~100,000/sec  | 10x reads   |
+
+**DB writes ~1K, DB reads ~10K, cache ~100K. Each tier is 10x the previous.**
+
+This connects directly to the latency numbers. A DB read takes ~1-5ms. With ~10 concurrent connections per core on a 4-core instance, that's ~40-80 connections × ~200 reads/sec each ≈ 10,000 reads/sec. Throughput falls out of latency and concurrency combined — the faster the operation, the more of them you can do per second.
+
+App servers (~10K-100K req/sec) sit between DB reads and cache. They're faster than what they call into, which is why they're rarely the bottleneck.
+
+The quick mental check for any design:
+
+| Threshold             | What it signals                      | First move                          |
+| --------------------- | ------------------------------------ | ----------------------------------- |
+| Approaching 1K writes | WAL pressure, lock contention        | Connection pooling (PgBouncer)      |
+| Approaching 10K reads | Database working hard                | Read replicas or cache hot rows     |
+| Beyond 100K ops       | Past single-node cache territory     | Redis Cluster or shard the cache    |
+
 ## The Quick Math Formulas
 
 The numbers above are your building blocks. Now you need a way to go from a product requirement ("100,000 users placing orders") to a system requirement ("how many database queries per second?"). The chain is always the same:
@@ -412,8 +436,8 @@ Forget 86,400. These round numbers are close enough and easy to work with:
 | ----------- | ------------------ | -------------- | ----- | ----------------- |
 | 1 day       | 100,000 sec (10^5) | 86,400 sec     | ~15%  | Drop 5 zeros      |
 | 1 hour      | 4,000 sec          | 3,600 sec      | ~10%  | Drop 3 zeros, ×4  |
-| 1 month     | 2.5 million sec    | 2,592,000 sec  | ~3%   | Drop 5 zeros, ÷3  |
-| 1 year      | 30 million sec     | 31,536,000 sec | ~5%   | Drop 5 zeros, ÷30 |
+| 1 month     | 2.5 million sec    | 2,592,000 sec  | ~3%   | day × 25          |
+| 1 year      | 30 million sec     | 31,536,000 sec | ~5%   | day × 300         |
 
 The one rule you need: **1 day ≈ 10^5 seconds. To go from "per day" to "per second", drop 5 zeros.**
 
