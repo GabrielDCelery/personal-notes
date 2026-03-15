@@ -167,6 +167,16 @@ Client                                              Server
 
 The database query almost always dominates. This is why the first optimisation is usually: add an index, then add a cache. Not "rewrite in a faster language."
 
+### Two different bottlenecks
+
+Databases and external APIs are both slow, but they hurt you differently.
+
+**Databases** have low latency per call (1-10 ms) but you make many calls per request (3-5 queries). The problem shows up as throughput — thousands of concurrent requests saturate connections and the database starts queuing. One slow request isn't the issue, it's the volume. Fix with: indexes, caching hot reads, connection pooling, read replicas.
+
+**External APIs** have high latency per call (50-500 ms) but you usually make one or two per request. The problem shows up as latency — a single request sits waiting for half a second. You don't saturate the external service, but your users feel the wait and your threads are tied up doing nothing. Fix with: make calls async, parallelize independent calls, add timeouts and circuit breakers so one slow dependency doesn't cascade.
+
+The instinct is to optimise the database first, and that's usually right. But if your request includes an external API call, that 200 ms dwarfs everything else — no amount of database tuning will help. Check which one actually dominates before optimising.
+
 ## Size Numbers
 
 Estimating storage is about knowing what a "typical" piece of data looks like. A JSON API response is 1-10 KB. A database row is 100-500 bytes. A photo is 2-5 MB. Once you know the unit size, everything is multiplication — the hard part is knowing the unit, not the math.
@@ -209,9 +219,9 @@ DB reads     ~10,000/sec   (10^4)   — 10x writes
 Cache ops    ~100,000/sec  (10^5)   — 10x reads
 ```
 
-**DB writes ~1K, DB reads ~10K, cache ~100K. Each tier is 10x the previous.** This is the only throughput fact you need for most estimations.
+**DB writes ~ 1K, DB reads ~ 10K, cache ~ 100K. Each tier is 10x the previous.** This is the only throughput fact you need for most estimations.
 
-Why does this work? A DB read takes ~1-5 ms. With ~10 concurrent connections per core on a 4-core instance, that's ~40-80 connections x ~200 reads/sec each = ~10,000 reads/sec. Throughput falls out of latency and concurrency — the faster the operation, the more you can do per second.
+Why does this work? A DB read takes ~ 1-5 ms. With ~ 10 concurrent connections per core on a 4-core instance, that's ~ 40-80 connections x ~ 200 reads/sec each = ~ 10,000 reads/sec. Throughput falls out of latency and concurrency — the faster the operation, the more you can do per second.
 
 When to worry:
 
@@ -288,6 +298,18 @@ These are ballpark numbers for a single node with decent hardware (4-8 cores, 16
 
 Most web applications don't need to worry about app server throughput. If you have 100,000 users making 100 requests/day, that's 10 million/day = ~100 RPS. A single app server handles this with 99% of its capacity idle. The bottleneck is almost always the database.
 
+### Which database to pick
+
+The throughput differences between databases (MongoDB 10K-50K reads vs Postgres 5K-20K) rarely drive the choice — most systems never hit those limits. The data model fit is what matters.
+
+**Postgres** is the default. Pick it when your data has relationships (orders -> items -> users), you need joins, or you need transactions across multiple tables. If some records have flexible structure (e.g. products with varying attributes), use a `jsonb` column — you get a typed schema for the fixed parts and flexible JSON for the rest, with GIN indexes for querying inside it.
+
+**MongoDB** wins when the whole record is the document and you're never joining. A CMS, IoT telemetry, user-generated forms where the payload shape changes unpredictably. It also wins when you need to query deeply into nested arrays and subdocuments — Postgres `jsonb` handles simple key-value lookups but MongoDB's query language is far richer for things like "find where `variants[].options[].color = 'red' AND variants[].price < 50`". If you need horizontal write scaling (50K+ writes/sec), MongoDB sharding is simpler than Postgres sharding (Citus).
+
+**DynamoDB** wins when you need near-unlimited horizontal scale and your access patterns are simple key-value or key + sort key lookups. You trade higher per-operation latency (5-10 ms vs 1-5 ms) and rigid query patterns for never thinking about capacity. You must design the table around your access patterns upfront.
+
+The common mistake: picking MongoDB because the getting-started experience is easy (no schema, just throw JSON in), then hitting a point where you need joins or cross-collection transactions and wishing you'd picked Postgres.
+
 ### How instance size shifts these numbers
 
 The throughput numbers above assume a mid-range instance (~4-8 vCPU, 16-32 GB RAM). This matters because "Postgres handles 10,000 QPS" is wrong if you're running on a `db.t3.micro` — that tops out around 200-500 QPS.
@@ -318,7 +340,7 @@ The rough scaling rule: **2x cores = 1.5-1.8x throughput** for reads, less for w
 
 The simple model numbers (1K writes, 10K reads) map to `db.r6g.xlarge` — a typical production instance at $200-400/month. Most startups run on `db.r6g.large` to `db.r6g.xlarge` and never need anything bigger. MySQL and MongoDB follow similar scaling curves at similar instance sizes.
 
-For other systems: **Redis** scales with bigger instances mainly for more RAM (larger working set), not throughput — it's single-threaded, so you shard via Redis Cluster. A `cache.r6g.large` (13 GB) does ~100K ops/sec. **App servers** scale linearly with vCPU: a 4 vCPU ECS task handles ~10K-25K req/sec (Node.js) or ~30K-80K req/sec (Go). **Lambda** is different entirely — throughput scales by running more instances in parallel (up to 1,000-3,000 concurrent), not by making one faster. A single Lambda handles one request at a time, so 1,000 RPS means 1,000 concurrent Lambdas if each takes 1 second, or 100 if each takes 100 ms.
+For other systems: **Redis** scales with bigger instances mainly for more RAM (larger working set), not throughput — it's single-threaded, so you shard via Redis Cluster. A `cache.r6g.large` (13 GB) does ~100K ops/sec. **App servers** scale linearly with vCPU: a 4 vCPU ECS task handles ~ 10K-25K req/sec (Node.js) or ~ 30K-80K req/sec (Go). **Lambda** is different entirely — throughput scales by running more instances in parallel (up to 1,000-3,000 concurrent), not by making one faster. A single Lambda handles one request at a time, so 1,000 RPS means 1,000 concurrent Lambdas if each takes 1 second, or 100 if each takes 100 ms.
 
 ## The Quick Math
 
