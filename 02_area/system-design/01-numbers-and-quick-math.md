@@ -4,7 +4,7 @@ System design estimation isn't about getting exact numbers. It's about getting w
 
 ## The Three Speed Worlds
 
-Everything in computing lives in one of three speed worlds: **nanoseconds** (CPU and memory), **microseconds** (SSD, context switches), and **milliseconds** (network, disk). The jump between each world is roughly 1,000x. Once you internalise this, you can reason about any system: if the operation touches the network, it's milliseconds. If it's in memory, it's nanoseconds. If it's on disk, somewhere in between.
+Everything in computing lives in one of three speed worlds: **nanoseconds** (CPU, memory and syscalls), **microseconds** (SSD, context switches), and **milliseconds** (network, disk). The jump between each world is roughly 1,000x. Once you internalise this, you can reason about any system: if the operation touches the network, it's milliseconds. If it's in memory, it's nanoseconds. If it's on disk, somewhere in between.
 
 These are approximate, but stable across years of hardware. Memorise the order of magnitude, not the exact value.
 
