@@ -386,13 +386,57 @@ Traffic isn't evenly distributed — peak is usually 2-5x average. Multiply by 3
 
 ### Requests per second to database queries
 
-This is where most people underestimate. A "simple" endpoint that shows an order typically involves: check auth (1 query), fetch the order (1), fetch order items (1), fetch shipping status (1), maybe log the access (1 write). That's 5 queries for what feels like one request.
+This is where most people underestimate. Not every API request is one database query — and you need to split reads from writes because the database handles 10x more reads than writes.
+
+A **read request** (show an order) might involve:
 
 ```
-DB QPS = RPS x queries_per_request
-
-300 peak RPS x 3 queries = 900 DB QPS   <- comfortable for a single Postgres
+Check auth            -> 1 read
+Fetch order           -> 1 read
+Fetch order items     -> 1 read
+Fetch shipping status -> 1 read
+Total: 4 reads, 0 writes
 ```
+
+A **write request** (place an order) is typically a transaction that touches multiple rows:
+
+```
+BEGIN TRANSACTION
+  Check stock (with lock)    -> 1 read
+  Insert order               -> 1 write
+  Insert order items (3x)    -> 3 writes
+  Decrement stock (3 items)  -> 3 writes
+  Insert payment record      -> 1 write
+COMMIT
+Total: 1 read, 8 writes — but all inside one transaction (10-30 ms)
+```
+
+That looks like 8 writes, but for throughput estimation it counts as **1 write transaction**. The database's write throughput limit is about concurrent transactions, not individual row modifications. What matters is how many transactions are open at the same time, each holding connections and locks for 10-30 ms.
+
+With ~100 database connections, each transaction taking ~20 ms:
+
+```
+100 connections / 0.02 sec = ~5,000 write transactions/sec capacity
+```
+
+The rule of thumb:
+
+- **Read endpoints**: multiply by 3-5 (count individual queries)
+- **Write endpoints**: count as 1 write transaction per request (not per row), plus 1-2 reads before the transaction for validation
+
+```
+Example: 300 peak RPS of read requests, 100 peak RPS of write requests
+
+Reads:              300 x 4 queries       = 1,200 read QPS
+                    100 x 1 pre-tx read   =   100 read QPS
+Write transactions: 100 x 1 transaction   =   100 write tx/sec
+                                            -----------
+Total: 1,300 read QPS + 100 write transactions/sec
+
+Both comfortably within a single Postgres instance.
+```
+
+If you count every row inside a transaction as a separate write, you'd get 100 x 8 = 800 write QPS and think you're under pressure. In reality it's 100 concurrent transactions — well within the ~5,000 transaction/sec capacity of a mid-range instance.
 
 ### Storage
 
@@ -445,64 +489,75 @@ Redis single instance comfortably holds 10-25 GB. Above that, cluster or shard. 
 
 This is how you'd walk through an estimation in an interview or design discussion. The goal isn't precise numbers — it's making decisions.
 
-**Given:** 100,000 users, each placing ~2 orders/day, browsing ~50 pages/day.
+**Given:** 100,000 users, 100 orders/day each, ~10 page views per order. Orders happen between 9am-5pm (8 hours).
 
 **Traffic:**
 
-```
-Browsing:  100,000 x 50 = 5 million/day -> drop 5 zeros -> ~50 RPS avg -> ~150 peak
-Ordering:  100,000 x 2  = 200,000/day   -> drop 5 zeros -> ~2 RPS avg  -> ~6 peak
-Total:     ~156 peak RPS
-```
-
-Trivial for any modern app server.
-
-**Database load:**
+Don't use the day rule here — traffic is concentrated in 8 hours, not spread across 24. Use 30,000 seconds (8 hours) instead of 100,000 (full day):
 
 ```
-Browse: 150 peak RPS x 3 queries each = 450 DB QPS
-Orders: 6 peak RPS x 5 queries each   = 30 DB QPS (but writes!)
-Total:  ~480 DB QPS
+Orders:   100,000 x 100 = 10 million/day / 30,000 sec = ~333 RPS avg -> ~1,000 peak
+Browsing: 10 pages per order = 100 million/day / 30,000  = ~3,333 RPS avg -> ~10,000 peak
+Total:    ~11,000 peak RPS
 ```
 
-A single Postgres instance handles this without breaking a sweat.
+Multiple app servers behind a load balancer. A single Node.js instance handles 10K-30K req/sec, so 2-3 instances with headroom.
+
+**Database load — split reads from writes:**
+
+```
+Browse requests:  10,000 peak RPS x 4 reads each   = 40,000 read QPS
+Order pre-checks:  1,000 peak RPS x 1 read each    =  1,000 read QPS
+Order writes:      1,000 peak RPS x 1 transaction   =  1,000 write tx/sec
+                                                      -----------
+Total: 41,000 read QPS + 1,000 write transactions/sec
+```
+
+The reads are the bottleneck, not the writes. 41,000 read QPS exceeds a single Postgres instance (5,000-20,000). The 1,000 write tx/sec is right at the connection pooling threshold but manageable.
 
 **Storage:**
 
 ```
-Orders:   100,000 x 2/day x 365 x 1 KB = ~73 GB/year
-Products: 500,000 x 5 KB                = 2.5 GB (static)
-Users:    100,000 x 2 KB                = 200 MB
-Total:    ~75 GB first year — fits on a single database
+Orders:   100,000 x 100/day x 365 x 1 KB = ~3.6 TB/year
+Products: 500,000 x 5 KB                  = 2.5 GB (static)
+Users:    100,000 x 2 KB                  = 200 MB
+Total:    ~3.6 TB first year — single DB, but plan for archiving old orders
 ```
 
 **Caching:**
 
 ```
-Hot products (top 10K): 10,000 x 5 KB = 50 MB  -> Redis, trivial
-User sessions: 100,000 x 1 KB         = 100 MB -> Redis, trivial
+Hot products (top 50K): 50,000 x 5 KB = 250 MB -> Single Redis, trivial
+User sessions: 100,000 x 1 KB         = 100 MB -> Single Redis, trivial
 ```
 
-You might not even need a cache at this scale. But if product pages involve complex joins, caching the top 10,000 eliminates most reads — access follows a power law (top 20% gets 80% of views).
+Caching the top products is essential here — it's how you bring 41,000 read QPS down to something a single Postgres instance can handle. If the top 20% of products serve 80% of views, caching 50K products absorbs ~32,000 of those reads, leaving ~9,000 hitting the database. That's comfortable.
 
 **Verdict:**
 
 ```
-~156 peak RPS, ~480 DB QPS, 75 GB storage/year
+~11,000 peak RPS, 41,000 read QPS, 1,000 write tx/sec, 3.6 TB/year
 
-One app server, one database, maybe Redis for sessions. Don't over-engineer. Ship it.
+2-3 app servers, one Postgres with connection pooling (PgBouncer),
+Redis for product cache + sessions. Read replicas if cache hit rate
+is lower than expected.
 ```
 
-**What if it grows 100x?**
+**What if traffic is spread evenly across the day instead?**
 
 ```
-10,000,000 users:
-  ~15,000 peak RPS -> multiple app servers behind a load balancer
-  ~48,000 DB QPS   -> read replicas + caching + connection pooling
-  7.3 TB/year      -> still one DB, but archive old orders
+Same users and orders, but 24-hour traffic:
+  10 million orders / 100,000 sec = 100 RPS avg -> 300 peak
+  100 million views / 100,000 sec = 1,000 RPS avg -> 3,000 peak
+
+  Reads:  3,000 x 4 = 12,000 read QPS + 300 x 1 = 300 read QPS
+  Writes: 300 x 1 transaction = 300 write tx/sec
+
+  12,300 read QPS — still needs caching, but much more relaxed.
+  One app server might suffice. No read replicas needed.
 ```
 
-Now you need infrastructure. But you'd know because you'd watch the metrics grow — you don't build for this on day one.
+The time window makes a 3x difference in peak load. Always ask "when does the traffic happen?" before defaulting to the day rule.
 
 ## Rules of Thumb and Common Mistakes
 
