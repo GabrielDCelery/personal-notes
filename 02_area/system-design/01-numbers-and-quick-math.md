@@ -183,18 +183,21 @@ Estimating storage is about knowing what a "typical" piece of data looks like. A
 
 The key mental anchor: **1 million rows at 500 bytes each = 500 MB**. That's small. Most people overestimate how much storage they need. A database with 10 million users and their profiles is ~20 GB — it fits in RAM on a single machine. Storage only becomes a problem with binary blobs (photos, video) or very high write rates over long retention periods.
 
-| Data type           | Size          | Notes                        |
-| ------------------- | ------------- | ---------------------------- |
-| UUID                | 16 bytes      | 128 bits, 36 chars as string |
-| Timestamp (Unix)    | 8 bytes       | int64                        |
-| IPv4 / IPv6 address | 4 / 16 bytes  | 32 / 128 bits                |
-| Short text (tweet)  | 200-500 bytes | UTF-8                        |
-| JSON API response   | 1-10 KB       | Typical REST endpoint        |
-| Log line            | 200-500 bytes | Structured JSON              |
-| Average DB row      | 100-500 bytes | Depends on schema            |
-| Web page (full)     | 2-5 MB        | HTML + CSS + JS + images     |
-| Photo (JPEG)        | 2-5 MB        | Reasonable quality           |
-| 1-min video (720p)  | 10-30 MB      | Compressed, depends on codec |
+| Data type                     | Size          | Notes                        |
+| ----------------------------- | ------------- | ---------------------------- |
+| UUID                          | 16 bytes      | 128 bits, 36 chars as string |
+| Timestamp (Unix)              | 8 bytes       | int64                        |
+| IPv4 / IPv6 address           | 4 / 16 bytes  | 32 / 128 bits                |
+| Short text (tweet)            | 200-500 bytes | UTF-8                        |
+| JSON API response             | 1-10 KB       | Typical REST endpoint        |
+| Log line                      | 200-500 bytes | Structured JSON              |
+| Average DB row                | 100-500 bytes | Depends on schema            |
+| Web page (full)               | 2-5 MB        | HTML + CSS + JS + images     |
+| Photo (JPEG)                  | 2-5 MB        | Reasonable quality           |
+| 1-min video (720p)            | 10-30 MB      | Compressed, depends on codec |
+| YouTube video (10 min, 1080p) | 150-300 MB    | Typical upload, H.264        |
+| Full movie (1080p)            | 1.5-4 GB      | ~2 hours, H.264/H.265        |
+| Full movie (4K)               | 5-15 GB       | Streaming quality, HEVC      |
 
 The scaling shortcuts to memorise:
 
@@ -359,12 +362,12 @@ Every estimation starts with "how many requests per second?" and everything else
 
 Forget 86,400. These rounded numbers are close enough:
 
-| Time period | Quick estimate     | Actual         | Error | Trick                     |
-| ----------- | ------------------ | -------------- | ----- | ------------------------- |
-| 1 day       | 100,000 sec (10^5) | 86,400 sec     | ~15%  | The anchor — drop 5 zeros |
-| 1 hour      | 4,000 sec          | 3,600 sec      | ~10%  | Drop 3 zeros, x4          |
-| 1 month     | 2.5 million sec    | 2,592,000 sec  | ~3%   | day x 25                  |
-| 1 year      | 30 million sec     | 31,536,000 sec | ~5%   | day x 300                 |
+| Time period | Quick estimate     | Actual         | Error | Trick                      |
+| ----------- | ------------------ | -------------- | ----- | -------------------------- |
+| 1 day       | 100,000 sec (10^5) | 86,400 sec     | ~15%  | The anchor — drop 5 zeros  |
+| 1 hour      | 4,000 sec          | 3,600 sec      | ~10%  | Drop 3 zeros, x4           |
+| 1 month     | 3 million sec      | 2,592,000 sec  | ~16%  | day x 30                   |
+| 1 year      | 36 million sec     | 31,536,000 sec | ~14%  | month x 12, or day x 360   |
 
 **To go from "per day" to "per second", drop 5 zeros.** 10 million actions per day? That's 100 per second. The quick number is always ~14% lower than exact — this never changes a design decision.
 
@@ -444,16 +447,16 @@ If you count every row inside a transaction as a separate write, you'd get 100 x
 Storage = users x data_per_user x retention_period
 ```
 
-| Scenario                    | Calculation                        | Per year | Where?         |
-| --------------------------- | ---------------------------------- | -------- | -------------- |
-| User profiles (1M users)    | 1M x 2 KB                          | 2 GB     | Database       |
-| Activity logs (1M users)    | 1M x 50 events/day x 500 bytes     | 9 GB     | Database       |
-| Orders (1M users, 2/day)    | 1M x 2 x 1 KB x 365                | 730 GB   | Database       |
-| Chat messages (1M users)    | 1M x 20 msgs/day x 500 bytes x 365 | 3.6 TB   | DB + archive   |
-| Photos (1M users, 2/week)   | 1M x 2 x 3 MB x 52                 | 312 TB   | Object storage |
-| Video (100K creators, 1/wk) | 100K x 500 MB x 52                 | 2.6 PB   | Object storage |
+| Scenario                                  | Calculation                        | Per year | Where?         |
+| ----------------------------------------- | ---------------------------------- | -------- | -------------- |
+| User profiles (1M users)                  | 1M x 2 KB                          | 2 GB     | Database       |
+| Activity logs (1M users, 50 events/day)   | 1M x 50 x 500 bytes x 360          | ~9 TB    | DB + archive   |
+| Orders (1M users, 2/day)                  | 1M x 2 x 1 KB x 365                | 730 GB   | Database       |
+| Chat messages (1M users, 20 messages/day) | 1M x 20 msgs/day x 500 bytes x 365 | 3.6 TB   | DB + archive   |
+| Photos (1M users, 2/week)                 | 1M x 2 x 3 MB x 52                 | 312 TB   | Object storage |
+| Video (100K creators, 1/wk)               | 100K x 500 MB x 52                 | 2.6 PB   | Object storage |
 
-Rule of thumb: anything over ~500 GB/year of blobs goes to S3 (~$23/TB/month).
+Rule of thumb: anything over ~ 500 GB/year of blobs goes to S3 (~$23/TB/month).
 
 ### Bandwidth
 
