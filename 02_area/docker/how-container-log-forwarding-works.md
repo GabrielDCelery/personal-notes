@@ -48,6 +48,32 @@ The driver may spin up its own background goroutines too. `awslogs` for example 
 
 All of it lives inside dockerd — same process, same memory space, no separate PID.
 
+## json-file log limits
+
+By default `json-file` has no size limit — it will grow until it fills the disk, which is a real problem in production. You configure limits either globally in `/etc/docker/daemon.json` or per container:
+
+```yaml
+# docker-compose.yml
+services:
+  my-service:
+    image: my-image
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "3"
+```
+
+```sh
+# docker run
+docker run --log-driver json-file --log-opt max-size=10m --log-opt max-file=3 my-image
+```
+
+- `max-size` — max size of a single log file before it rotates
+- `max-file` — how many rotated files to keep
+
+With the above you'd have at most 30MB of logs per container (3 files × 10MB). When a new file is created the oldest is deleted. In production it's good practice to either set these limits or switch to a driver like `awslogs` that ships logs off the host entirely.
+
 ## How awslogs ships to CloudWatch
 
 The CloudWatch call is a `PutLogEvents` — an HTTPS POST with a batch of log events (timestamp + message string) to a specific log group and stream. Auth uses AWS Signature V4 derived from the task's IAM role, which ECS makes available via a credentials endpoint. Docker's `awslogs` driver handles all of this: buffering, batching, signing, and retrying. Your app knows nothing about it.
