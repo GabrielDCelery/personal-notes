@@ -60,17 +60,23 @@ On EC2 you could install a Datadog agent on the host, which runs alongside docke
 
 ## FireLens: the Fargate solution
 
-AWS added `awsfirelens` as a built-in driver in the version of dockerd they run on Fargate. Instead of shipping logs to a remote service, it forwards them over a **Unix socket to a sidecar container inside your task**. That sidecar is yours to control.
+AWS added `awsfirelens` as a built-in driver in the version of dockerd they run on Fargate. Instead of shipping logs directly to a remote service, it hands them off to a sidecar container inside your task — which you control — and that sidecar makes the API call to wherever you want.
+
+The handoff mechanism between dockerd and the sidecar is a **Unix socket**. A Unix socket is a file on disk that two processes on the same machine use to send data to each other. It works like a network socket — one side listens, one side connects and writes — except there's no IP, no TCP, no network stack. The kernel moves bytes directly between the two processes in memory. The file itself contains no data, it's just an address (like an IP:port but as a filesystem path).
 
 ```
 container stdout
     └──> awsfirelens driver (inside dockerd, AWS-managed)
-              └──> Unix socket
+              └──> Unix socket  ← bytes cross the process boundary here
                         └──> Fluent Bit sidecar (inside your task, you control this)
                                   └──> POST to Datadog / CloudWatch / wherever
 ```
 
-ECS handles the wiring automatically — it configures the socket path and injects the Fluent Bit config so both sides connect without manual setup.
+This is also why drivers like `awslogs` and `json-file` don't need a socket — the log copier goroutine calls the driver code directly inside dockerd. No process boundary, no socket needed. The socket only appears when logs need to leave dockerd entirely.
+
+Access to a Unix socket is controlled by standard Linux file permissions — `chmod` and `chown` work on them like any other file. The Docker socket (`/var/run/docker.sock`) is a well-known example: it's owned by `root` and group `docker`, which is why you need to be in the `docker` group to run Docker commands without `sudo`. Anyone who can write to that socket can control dockerd — effectively root access on the machine.
+
+ECS handles the FireLens wiring automatically — it creates the socket, configures the path, and injects the Fluent Bit config so both sides connect without manual setup.
 
 ## What Fluent Bit is
 
