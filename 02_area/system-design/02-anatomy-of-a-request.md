@@ -1,4 +1,4 @@
-# Anatomy of a Request
+#t Anatomy of a Request
 
 Every system design discussion starts with a request flowing through the stack. Understanding where time goes — and where it hides — tells you what to optimise and what to leave alone. This lesson traces a single HTTP request from the browser to the database and back, layer by layer.
 
@@ -227,13 +227,25 @@ Order Service hangs (30s timeout):
   Everything is down
 ```
 
-**The rule:** set timeouts on every outbound call — HTTP clients, DB connections, Redis. Set them just above the p99 latency of the downstream service, not at 30 seconds.
+**The rule:** set timeouts on every outbound call — HTTP clients, DB connections, Redis. To know where to set them you need to measure p99 first, which means the process is:
+
+1. **Start with a safe conservative default** — prevents cascading failures while you gather data:
+   - Internal service calls: 500 ms–1 s
+   - External APIs: 2–5 s
+   - DB queries: 5–10 s
+   - Redis: 100–500 ms
+2. **Instrument and observe** — collect p99 per downstream call in production or under load test.
+3. **Tighten** — set the timeout to ~2–3× p99. That gives headroom for normal variance without letting hung calls block forever.
+
+Even a 5 s timeout is vastly better than no timeout, which defaults to infinity. Most cascading failures happen because no timeout was set at all, not because the wrong value was chosen.
 
 The cascade stops with a **circuit breaker**: after N failures, stop calling the service for a cooldown period and return a fallback instead of hanging.
 
 ## How to Read a Latency Profile
 
 **Use percentiles, not averages.** A service with "average 10 ms" might have p99 at 2 seconds. Averages hide the tail.
+
+The two that matter: **p50** (what a normal request looks like) and **p99** (what the worst 1 in 100 users experiences, and what you calibrate your timeouts against). p95 sits between them but doesn't add a distinct insight — it's useful for fine-grained SLO work, not for this mental model.
 
 The gap between p50 and p99 tells you what's wrong:
 
@@ -258,7 +270,7 @@ The gap between p50 and p99 tells you what's wrong:
 - **Verify auth once at the edge.** Don't re-verify at every microservice.
 - **Parallel calls = max, not sum.** Parallelise independent downstream calls.
 - **Timeouts on everything.** A missing timeout on one call can cascade and take down unrelated services.
-- **Measure p99, not average.** Averages hide the tail where users suffer.
+- **Measure p50 and p99, not average.** p50 = normal, p99 = worst 1 in 100. Averages hide the tail.
 - **Most problems are configuration, not code.** Missing indexes, no pooling, no caching, no timeouts — fix these before rewriting anything.
 
 ## What's Next
