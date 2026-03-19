@@ -362,12 +362,12 @@ Every estimation starts with "how many requests per second?" and everything else
 
 Forget 86,400. These rounded numbers are close enough:
 
-| Time period | Quick estimate     | Actual         | Error | Trick                      |
-| ----------- | ------------------ | -------------- | ----- | -------------------------- |
-| 1 day       | 100,000 sec (10^5) | 86,400 sec     | ~15%  | The anchor — drop 5 zeros  |
-| 1 hour      | 4,000 sec          | 3,600 sec      | ~10%  | Drop 3 zeros, x4           |
-| 1 month     | 3 million sec      | 2,592,000 sec  | ~16%  | day x 30                   |
-| 1 year      | 36 million sec     | 31,536,000 sec | ~14%  | month x 12, or day x 360   |
+| Time period | Quick estimate     | Actual         | Error | Trick                     |
+| ----------- | ------------------ | -------------- | ----- | ------------------------- |
+| 1 day       | 100,000 sec (10^5) | 86,400 sec     | ~15%  | The anchor — drop 5 zeros |
+| 1 hour      | 4,000 sec          | 3,600 sec      | ~10%  | Drop 3 zeros, x4          |
+| 1 month     | 3 million sec      | 2,592,000 sec  | ~16%  | day x 30                  |
+| 1 year      | 36 million sec     | 31,536,000 sec | ~14%  | month x 12, or day x 360  |
 
 **To go from "per day" to "per second", drop 5 zeros.** 10 million actions per day? That's 100 per second. The quick number is always ~14% lower than exact — this never changes a design decision.
 
