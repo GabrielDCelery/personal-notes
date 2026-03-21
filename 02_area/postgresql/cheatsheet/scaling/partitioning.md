@@ -237,6 +237,80 @@ ORDER BY 1;
 SELECT * FROM events_2026_03 WHERE event_type = 'click';
 ```
 
+## Archiving a Partition
+
+The main reason to use range partitioning for time-series data is that you can archive old partitions cleanly — no expensive `DELETE` scanning millions of rows, no index bloat.
+
+### The export-verify-detach-drop sequence
+
+```sql
+-- 1. Export the partition (self-managed Postgres)
+COPY orders_2023 TO '/tmp/orders_2023.csv' WITH (FORMAT csv, HEADER true);
+
+-- On RDS, use aws_s3 instead (see postgresql/cheatsheet/aws-rds/s3-export.md)
+
+-- 2. Verify row counts match before destroying anything
+SELECT COUNT(*) FROM orders_2023;
+-- Compare with: wc -l /tmp/orders_2023.csv (subtract 1 for header)
+
+-- 3. Detach the partition (non-blocking on PG 14+)
+--    The partition becomes a standalone table, invisible to queries on `orders`
+ALTER TABLE orders DETACH PARTITION orders_2023 CONCURRENTLY;
+
+-- 4. Drop it (or keep as standalone table temporarily as a safety net)
+DROP TABLE orders_2023;
+```
+
+After step 3, `SELECT * FROM orders` no longer touches 2023 data at all. The live table is smaller, vacuums are faster, and indexes are smaller.
+
+### Retrofitting partitions onto an existing table
+
+Postgres does not allow adding partitioning to an existing table in place. You have to recreate it alongside the original and swap.
+
+```sql
+-- 1. Create the new partitioned table alongside the old one
+CREATE TABLE orders_partitioned (
+    id          BIGINT,
+    created_at  TIMESTAMP,
+    customer_id BIGINT,
+    total       NUMERIC
+) PARTITION BY RANGE (created_at);
+
+CREATE TABLE orders_2023 PARTITION OF orders_partitioned
+    FOR VALUES FROM ('2023-01-01') TO ('2024-01-01');
+
+CREATE TABLE orders_2024 PARTITION OF orders_partitioned
+    FOR VALUES FROM ('2024-01-01') TO ('2025-01-01');
+
+-- 2. Copy data in batches (not all at once — holds locks and bloats WAL)
+INSERT INTO orders_partitioned
+SELECT * FROM orders
+WHERE created_at >= '2023-01-01' AND created_at < '2024-01-01'
+ON CONFLICT DO NOTHING;  -- safe to re-run if interrupted
+
+-- Repeat for each year range. Checkpoint progress externally if table is large.
+
+-- 3. Recreate indexes and constraints on the new table before swapping
+CREATE INDEX idx_orders_partitioned_customer ON orders_partitioned (customer_id);
+-- Foreign keys referencing orders need to be handled separately
+
+-- 4. Swap atomically — fast, no data loss window
+BEGIN;
+ALTER TABLE orders RENAME TO orders_old;
+ALTER TABLE orders_partitioned RENAME TO orders;
+COMMIT;
+
+-- 5. Copy any rows written to orders_old during the backfill (small gap)
+INSERT INTO orders SELECT * FROM orders_old
+WHERE created_at > (SELECT MAX(created_at) FROM orders)
+ON CONFLICT DO NOTHING;
+
+-- 6. Drop the old table once satisfied
+DROP TABLE orders_old;
+```
+
+The copy step (step 2) is the slow part — treat it like any large migration: batch it, make writes idempotent, checkpoint progress. The swap (step 4) is atomic and fast. See `operations/migrations.md` for the general pattern.
+
 ## Limitations
 
 - Foreign keys referencing partitioned tables require PG 12+
