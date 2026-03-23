@@ -1,473 +1,249 @@
 # Large Data and Migrations
 
-The previous lessons deal with request/response — a user asks for something, you return it in milliseconds. But some work doesn't fit that model. Migrating 500 million rows to a new schema. Backfilling a column across 200 GB of data. Streaming events from one system to another continuously. Exporting a year of transactions to a data warehouse nightly.
+The challenge with large data isn't the moving — it's estimating how long it takes, then doing it without killing production.
 
-This is a different world. The operations take minutes, hours, or days instead of milliseconds. The failure modes are different — you don't retry a 4-hour job from scratch. The bottleneck isn't latency, it's throughput. And the hardest constraint is often "don't kill production while doing it."
+## The Core Mental Model: The Throughput Ladder
 
-## The Numbers
-
-Before designing anything, know how long things actually take. Most people drastically underestimate how long it takes to move large amounts of data.
-
-### Transfer speeds
-
-| Operation                       | Speed         | Time for 1 GB | Time for 1 TB |
-| ------------------------------- | ------------- | ------------- | ------------- |
-| Sequential read from SSD        | ~500 MB/s     | 2 sec         | 34 min        |
-| Sequential write to SSD         | ~400 MB/s     | 2.5 sec       | 43 min        |
-| Network (same AZ, 10 Gbps)      | ~1 GB/s       | 1 sec         | 17 min        |
-| Network (cross-region)          | ~100-300 MB/s | 3-10 sec      | 1-3 hours     |
-| Network (public internet)       | ~10-50 MB/s   | 20-100 sec    | 6-28 hours    |
-| S3 upload (single stream)       | ~50-100 MB/s  | 10-20 sec     | 3-6 hours     |
-| S3 upload (multipart, parallel) | ~500 MB/s+    | 2 sec         | 34 min        |
-| pg_dump (medium table)          | ~50-100 MB/s  | 10-20 sec     | 3-6 hours     |
+Everything in this domain comes down to one formula: **Time = rows / throughput**. The throughput you get depends entirely on how you read and write. Know the ladder, pick your rung, estimate first.
 
 ```
-                1 sec      10 sec     1 min      10 min     1 hour     10 hours
-                │          │          │          │          │          │
+Read throughput:
+  SELECT * cursor (1000/batch)  ~10,000 rows/sec   ████
+  COPY TO (Postgres binary)    ~200,000 rows/sec   ████████████████████████████████████████
+
+Write throughput:
+  INSERT single-row            ~2,000 rows/sec     █
+  INSERT batched (1000/batch)  ~35,000 rows/sec    ████████████████
+  COPY FROM                   ~200,000 rows/sec    ████████████████████████████████████████
+```
+
+COPY is 10–50x faster than SELECT for reads, and batching is 50x faster than single-row INSERTs for writes. Use `COPY` whenever you can.
+
+### Quick estimation
+
+```
+Conservative safe estimates (read + transform + write):
+  rows / 5,000  = total seconds
+
+  1M rows   → 200 sec   (~3 min)
+  10M rows  → 2,000 sec (~33 min)
+  100M rows → 20,000 sec (~5.5 hours)
+  1B rows   → 200,000 sec (~2.3 days)
+```
+
+If the estimate says "days", you need parallelism, `COPY`, or a fundamentally different approach.
+
+## Transfer Speeds
+
+Network location matters more than most people expect. Moving data across regions is 10x slower than within a datacentre; moving over the public internet is 100x slower.
+
+```
+                1 sec    10 sec   1 min    10 min   1 hr     10 hr
+                │        │        │        │        │        │
   1 GB:
-  SSD read      ██         ·          ·          ·          ·          ·
-  Same AZ net   █          ·          ·          ·          ·          ·
-  Cross-region  ···████    ·          ·          ·          ·          ·
-  Public net    ·  ····████████████   ·          ·          ·          ·
-  S3 single     ·    ██████████      ·          ·          ·          ·
-                │          │          │          │          │          │
+  SSD read      ██       ·        ·        ·        ·        ·
+  Same AZ net   █        ·        ·        ·        ·        ·
+  Cross-region  ···████  ·        ·        ·        ·        ·
+  Public net    ·  ·····██████████·        ·        ·        ·
+                │        │        │        │        │        │
   1 TB:
-  SSD read      ·          ·     █████████      ·          ·          ·
-  Same AZ net   ·          ·       ███████      ·          ·          ·
-  Cross-region  ·          ·          · ████████████████    ·          ·
-  Public net    ·          ·          ·          ·   ████████████████████████
-  S3 single     ·          ·          ·          ·████████████████     ·
-  S3 parallel   ·          ·     █████████      ·          ·          ·
-                │          │          │          │          │          │
-                1 sec      10 sec     1 min      10 min     1 hour     10 hours
+  SSD read      ·        ·   █████████     ·        ·        ·
+  Same AZ net   ·        ·     ███████     ·        ·        ·
+  Cross-region  ·        ·        · ███████████████·        ·
+  Public net    ·        ·        ·        ·  ██████████████████████
+  S3 parallel   ·        ·   █████████     ·        ·        ·
+                │        │        │        │        │        │
 ```
 
-The mental model: **within a data centre, 1 TB moves in ~30 minutes. Over the internet, 1 TB takes hours.** If you're moving 10+ TB over the internet, seriously consider AWS Snowball or a direct connect line.
+**Within a datacentre, 1 TB moves in ~30 minutes. Over the public internet, 1 TB takes hours.** For 10+ TB cross-region, consider AWS Snowball or Direct Connect rather than fighting network throughput.
 
-### Database scan speeds
+| Operation                 | Speed         | 1 GB     | 1 TB      |
+| ------------------------- | ------------- | -------- | --------- |
+| SSD sequential read       | ~500 MB/s     | 2 sec    | 34 min    |
+| Same AZ network (10 Gbps) | ~1 GB/s       | 1 sec    | 17 min    |
+| Cross-region network      | ~100–300 MB/s | 3–10 sec | 1–3 hours |
+| Public internet           | ~10–50 MB/s   | 20+ sec  | 6–28 hrs  |
+| S3 multipart + parallel   | ~500 MB/s     | 2 sec    | 34 min    |
 
-Reading data from a database is much slower than reading from disk, because you're going through the query engine, deserialising rows, and (usually) going over the network.
+## Database Read and Write Speeds
 
-| Operation                                | Speed                     | Time for 1M rows | Time for 100M rows |
-| ---------------------------------------- | ------------------------- | ---------------- | ------------------ |
-| `SELECT *` full table scan (Postgres)    | ~10,000-50,000 rows/sec   | 20-100 sec       | 30-160 min         |
-| `SELECT *` with WHERE on index           | ~5,000-20,000 rows/sec    | 50-200 sec       | 80-330 min         |
-| Cursor-based pagination (1000 per batch) | ~5,000-15,000 rows/sec    | 1-3 min          | 2-5 hours          |
-| `COPY TO` (Postgres binary export)       | ~100,000-500,000 rows/sec | 2-10 sec         | 3-17 min           |
-| DynamoDB Scan                            | ~5,000-15,000 items/sec   | 1-3 min          | 2-5 hours          |
-| DynamoDB Scan (parallel, 10 segments)    | ~30,000-100,000 items/sec | 10-30 sec        | 17-55 min          |
+Reading through the query engine is far slower than raw disk I/O — you pay for serialisation, the query planner, and the network hop. This is why `COPY` is the right tool for bulk extraction.
 
 ```
-                10 sec     1 min      10 min     1 hour     5 hours
-                │          │          │          │          │
-  1M rows:
-  Full scan     ████████   ·          ·          ·          ·
-  Cursor pages  ··█████████████       ·          ·          ·
-  COPY TO       ██         ·          ·          ·          ·
-  DynamoDB Scan ··█████████████       ·          ·          ·
-                │          │          │          │          │
   100M rows:
-  Full scan     ·          ·  ████████████████████████      ·
-  Cursor pages  ·          ·          ·   ██████████████████████████
-  COPY TO       ··████████████████    ·          ·          ·
-  DynamoDB Scan ·          ·          ·   ██████████████████████████
-                │          │          │          │          │
-                10 sec     1 min      10 min     1 hour     5 hours
+                10 sec  1 min   10 min  1 hr    5 hr
+                │       │       │       │       │
+  COPY TO       ·██████████████ ·       ·       ·
+  Full scan     ·       · ████████████████████  ·
+  Cursor pages  ·       ·       ·  █████████████████████
+                │       │       │       │       │
 ```
 
-Key insight: **`COPY` is 10-50x faster than `SELECT *` for bulk reads.** If you're extracting data from Postgres for a migration or export, always prefer `COPY TO` over application-level row-by-row reads. For DynamoDB, parallel scan segments are essential — a single-threaded scan of a large table will take hours.
-
-### Write speeds
-
-| Operation                           | Speed                     | Time for 1M rows | Time for 100M rows |
-| ----------------------------------- | ------------------------- | ---------------- | ------------------ |
-| Postgres INSERT (single row, no tx) | ~1,000-3,000 rows/sec     | 5-17 min         | 9-28 hours         |
-| Postgres INSERT (batches of 1000)   | ~20,000-50,000 rows/sec   | 20-50 sec        | 33-83 min          |
-| Postgres `COPY FROM`                | ~100,000-500,000 rows/sec | 2-10 sec         | 3-17 min           |
-| DynamoDB BatchWriteItem (25/batch)  | ~5,000-15,000 items/sec   | 1-3 min          | 2-5 hours          |
-| S3 PutObject (small files)          | ~100-300 objects/sec      | 1-3 hours        | forever            |
-| S3 (Parquet, large files)           | ~500 MB/s                 | depends on size  | depends on size    |
-
-**The 50x rule: batching writes gives ~50x throughput over individual inserts.** Single-row INSERTs at 2,000/sec means 100M rows takes 14 hours. Batched INSERTs at 50,000/sec means 33 minutes. `COPY FROM` at 300,000/sec means 6 minutes. Always batch.
-
-### The quick estimation formula
+For writes, the gap is even larger — single-row INSERTs are almost always a mistake at scale:
 
 ```
-Time = rows / throughput
-
-For a migration or backfill:
-  Reading:  rows / 10,000 rows/sec  (cursor-based, safe estimate)
-  Writing:  rows / 30,000 rows/sec  (batched inserts, safe estimate)
-  Total:    rows / 5,000 rows/sec   (read + transform + write combined)
-
-Quick table:
-  1 million rows    / 5,000 = 200 sec      = ~3 minutes
-  10 million rows   / 5,000 = 2,000 sec     = ~33 minutes
-  100 million rows  / 5,000 = 20,000 sec    = ~5.5 hours
-  1 billion rows    / 5,000 = 200,000 sec   = ~2.3 days
+  100M rows:
+                1 min   1 hr    10 hr   1 day
+                │       │       │       │
+  COPY FROM     ████    ·       ·       ·
+  Batch INSERT  ·  ████████████ ·       ·
+  Single INSERT ·       ·    ██████████████████
+                │       │       │       │
 ```
 
-If your back-of-envelope says "days", you need parallelism, `COPY`, or a different approach entirely.
+| Operation                       | Speed             | 1M rows | 100M rows |
+| ------------------------------- | ----------------- | ------- | --------- |
+| `SELECT *` full scan (Postgres) | ~30,000 rows/sec  | ~30 sec | ~1 hr     |
+| Cursor pagination (1000/batch)  | ~10,000 rows/sec  | ~2 min  | ~3 hrs    |
+| `COPY TO` binary export         | ~200,000 rows/sec | ~5 sec  | ~8 min    |
+| INSERT single-row               | ~2,000 rows/sec   | ~8 min  | ~14 hrs   |
+| INSERT batched (1000/batch)     | ~35,000 rows/sec  | ~30 sec | ~48 min   |
+| `COPY FROM`                     | ~200,000 rows/sec | ~5 sec  | ~8 min    |
+
+**Always batch writes. Always prefer `COPY` for bulk reads and loads.**
 
 ## Batch vs Stream
 
-The fundamental question: do you process data in chunks on a schedule, or continuously as it arrives?
+Batch collects data and processes it in scheduled chunks; streaming processes each event as it arrives. The choice turns on how fresh the data needs to be.
 
 ```
-Batch:   Collect data → wait → process all at once → wait → repeat
-         ████░░░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░░░████░░░░░░░░
+Batch:   ████░░░░░░░░░░░░░░░░████░░░░░░░░░░░░░░░░████░░░░░░░░
+Stream:  █·█··█·█·██··█·█··█·█··██·█·█··█·██·█·█··█·
 
-Stream:  Process each event as it arrives, continuously
-         █·█··█·█·██··█·█··█·█··██·█·█··█·██·█·█··█·█·█··██·█·
+Batch: simple to build, high throughput, minutes-to-hours latency
+Stream: complex to build, continuous, seconds-to-minutes latency
 ```
 
-|               | Batch                                   | Stream                                        |
-| ------------- | --------------------------------------- | --------------------------------------------- |
-| Latency       | Minutes to hours (scheduled)            | Seconds to minutes (near real-time)           |
-| Complexity    | Lower — simpler failure handling        | Higher — ordering, exactly-once, backpressure |
-| Throughput    | Very high (bulk operations)             | Lower per-event, but continuous               |
-| Recovery      | Re-run the batch                        | Replay from offset / checkpoint               |
-| Typical tools | Cron + scripts, Step Functions, Airflow | Kafka, Kinesis, DynamoDB Streams, SQS         |
-| Good for      | Reports, ETL, nightly syncs, backfills  | Event propagation, CDC, real-time dashboards  |
+| Dimension  | Batch                             | Stream                                       |
+| ---------- | --------------------------------- | -------------------------------------------- |
+| Latency    | Minutes to hours                  | Seconds to minutes                           |
+| Complexity | Low — re-run the batch on failure | High — ordering, exactly-once, backpressure  |
+| Throughput | Very high (bulk ops)              | Lower per-event, continuous                  |
+| Recovery   | Re-run the batch                  | Replay from offset / checkpoint              |
+| Use for    | Reports, nightly ETL, backfills   | CDC, event propagation, real-time dashboards |
 
-### When to use batch
-
-- Data is only needed periodically (nightly reports, weekly exports)
-- Source system can't handle continuous reads
-- You need complex transformations that benefit from bulk operations
-- The data naturally arrives in batches (file uploads, partner data drops)
-
-### When to use streaming
-
-- Downstream systems need data within seconds/minutes
-- You're propagating changes between services (CDC)
-- The volume is continuous and steady (clickstream, IoT telemetry)
-- You want to decouple producers from consumers
-
-### The hybrid middle ground
-
-Most real systems aren't purely batch or purely stream. The common pattern:
+Most real systems use both: **stream for operational use, batch for analytical**. The same data, two consumption paths.
 
 ```
-Source DB ──CDC──→ Kafka ──→ Consumer (real-time)
+Source DB ──CDC──→ Kafka ──→ Consumer (operational, real-time)
                      │
-                     └──→ S3 (hourly dumps) ──→ Warehouse (batch)
+                     └──→ S3 (hourly) ──→ Warehouse (analytical, batch)
 ```
-
-Stream for operational use (keep services in sync), batch for analytical use (load into warehouse). Same data, two consumption patterns.
 
 ## Migration Patterns
 
-Moving data from one place to another while the system is live. This is where most of the complexity lives — not in the moving itself, but in doing it without downtime or data loss.
+Moving data while the system is live is the hard part. Here are the four patterns, ordered from simplest to most capable.
 
-### Pattern 1: Offline migration (simplest)
+### Offline migration (simplest)
 
-```
-1. Take system down (maintenance window)
-2. Export data from old system
-3. Transform
-4. Import into new system
-5. Switch over
-6. Bring system up
-```
+Take the system down, export, transform, import, switch, bring back up. Works for small datasets (< 10M rows) or acceptable downtime windows. Non-starter for large data or zero-downtime requirements.
 
-**When it works:** Small datasets (< 10M rows), acceptable downtime window, simple transformation.
-
-**When it doesn't:** Large datasets where export + import takes hours, or zero-downtime requirement.
-
-### Pattern 2: Dual-write
+### Dual-write
 
 ```
-                    ┌──→ Old DB (reads still come from here)
-App writes to ──────┤
-                    └──→ New DB (building up data)
+App writes ──→ Old DB (reads come from here)
+           └──→ New DB (building up data)
 
-Phase 1: Dual-write. App writes to both. Reads from old.
-Phase 2: Backfill. Copy historical data from old to new.
-Phase 3: Verify. Compare old and new, fix discrepancies.
-Phase 4: Switch reads. App reads from new. Still writes to both.
-Phase 5: Cut over. Stop writing to old.
+Phase 1: Dual-write. Reads from old.
+Phase 2: Backfill historical data from old → new.
+Phase 3: Verify. Compare, reconcile.
+Phase 4: Switch reads to new. Still dual-writing.
+Phase 5: Stop writing to old.
 ```
 
-**Danger:** Dual writes without a transaction across both systems means they can diverge. If the write to the new DB fails but the old succeeds, you have inconsistency. Mitigate with:
+**Danger:** No atomic transaction across both systems — they can diverge on partial failure. Mitigate by writing old first (source of truth), then async sync to new, with a reconciliation job that patches gaps.
 
-- Reconciliation jobs that compare and fix
-- Writing to old first (source of truth), then async replication to new
-- Accepting temporary inconsistency and having a "fix-up" phase
+### CDC (Change Data Capture)
 
-### Pattern 3: CDC (Change Data Capture)
+The cleanest approach for live migrations. Reads the database's WAL (Debezium + Kafka, or AWS DMS) instead of querying tables — zero impact on production reads.
 
 ```
-Old DB ──WAL/binlog──→ CDC tool ──→ Kafka ──→ Consumer ──→ New DB
-         (Debezium)                              │
-                                          transform here
+Old DB ──WAL──→ Debezium ──→ Kafka ──→ Consumer ──→ New DB
+                                           │
+                                     transform here
 ```
 
-CDC reads the database's write-ahead log (WAL in Postgres, binlog in MySQL) and streams every change as an event. The consumer applies changes to the new system.
+The bootstrap sequence: snapshot at a known WAL position → load snapshot → stream changes from that WAL position forward. No gaps, no duplicates.
 
-**Why this is often the best approach:**
+### Shadow reads
 
-- Zero impact on the source database (reads the WAL, not the tables)
-- Captures every change, including deletes
-- Can transform data in flight
-- Natural backfill: start from a snapshot, then stream changes from that point
+Before cutting over, send reads to both systems and compare. Log mismatches, fix the migration, repeat until clean. The last safety net before switching.
 
-**Tools:** Debezium (open source, Kafka Connect), AWS DMS (managed), RDS logical replication.
+## Long-Running Workers
 
-**The tricky part:** You need to handle the initial snapshot + ongoing stream without missing or duplicating data. The typical approach:
+A worker that runs for hours needs different engineering than one that handles requests.
 
-```
-1. Take a consistent snapshot (pg_dump or Debezium snapshot mode)
-2. Record the WAL position at snapshot time
-3. Load the snapshot into the new system
-4. Start streaming changes from the recorded WAL position
-5. Consumer applies changes — snapshot fills history, stream fills the gap
-```
+**Essential properties:**
 
-### Pattern 4: Shadow reads
+| Property          | Why it matters                        | How                                                   |
+| ----------------- | ------------------------------------- | ----------------------------------------------------- |
+| Checkpointing     | Crash at hour 3 → resume, not restart | Store last processed ID/offset in DB or S3            |
+| Idempotent writes | Safe to re-process a batch            | UPSERT / `ON CONFLICT DO UPDATE`                      |
+| Progress tracking | Know if it's running, stuck, or done  | Log every N batches, expose metrics                   |
+| Throttling        | Don't starve live traffic             | Sleep between batches, cap concurrent connections     |
+| Graceful shutdown | Don't lose in-flight work on deploy   | Catch SIGTERM, finish current batch, checkpoint, exit |
 
-```
-                         ┌──→ Old DB ──→ Response (returned to user)
-App reads from both ─────┤
-                         └──→ New DB ──→ Response (logged, compared, discarded)
-```
+### Fan-out for speed
 
-Before cutting over reads, send read traffic to both systems and compare results. This catches data discrepancies before users see them. Log mismatches, fix the migration, repeat until clean.
-
-## Long-Running Workers vs Event-Driven
-
-A backfill that touches 100M rows will take hours. How you structure that work matters.
-
-### The long-running worker
+When you need hours cut to minutes, partition the work and run it in parallel:
 
 ```
-Worker starts
-  └──→ Open cursor on source DB
-       └──→ Read batch of 1000 rows
-            └──→ Transform
-                 └──→ Write batch to destination
-                      └──→ Checkpoint progress
-                           └──→ Read next batch... (repeat for hours)
+Coordinator
+  └──→ Partition by ID range (0–10M, 10M–20M, ...)
+       └──→ N workers process their slice independently
+            └──→ Each small and retryable; coordinator waits for all
 ```
 
-**Problems with long-running workers:**
-
-- If it crashes at hour 3 of a 5-hour job, what happens?
-- If you deploy new code, do you kill the running job?
-- If the source DB is slow, does the worker back off or hammer it?
-- How do you monitor progress? Is it 40% done or stuck?
-
-**Essential features for long-running workers:**
-
-| Feature           | Why                                        | How                                                    |
-| ----------------- | ------------------------------------------ | ------------------------------------------------------ |
-| Checkpointing     | Resume from where you left off after crash | Store last processed ID/offset in DB or S3             |
-| Idempotent writes | Re-processing a batch doesn't corrupt data | Use UPSERT / `ON CONFLICT DO UPDATE`                   |
-| Progress tracking | Know if it's running, stuck, or done       | Log progress every N batches, expose metrics           |
-| Throttling        | Don't kill the source DB                   | Sleep between batches, limit concurrent connections    |
-| Graceful shutdown | Don't lose in-flight work on deploy        | Handle SIGTERM, finish current batch, checkpoint, exit |
-
-### The event-driven alternative
-
-Instead of one worker scanning the entire table, emit events and let consumers process them:
-
 ```
-Step Function / Airflow
-  └──→ Partition the work (e.g., ID ranges 0-1M, 1M-2M, ...)
-       └──→ Fan out to N Lambda / ECS tasks in parallel
-            └──→ Each processes its partition independently
-                 └──→ Report completion
-                      └──→ Coordinator waits for all, then marks done
+Single worker, cursor:  100M / 5,000/sec = ~5.5 hours
+10 parallel workers:    10M each / 5,000/sec = ~33 minutes
+50 Lambda functions:    2M each / 5,000/sec = ~7 minutes
 ```
 
-**Advantages:** Parallelism (10 workers = ~10x faster), each unit of work is small and retryable, no long-running process to babysit.
-
-**Disadvantages:** Coordination overhead, harder to maintain ordering, more moving parts.
-
-### Decision framework
-
-```
-Use a long-running worker when:
-  - Order matters (process rows in sequence)
-  - The job runs regularly (nightly ETL)
-  - Simple operational model (one process to monitor)
-  - Data fits through a single pipeline
-
-Use fan-out / event-driven when:
-  - Speed matters (need to finish in minutes, not hours)
-  - Work is naturally partitionable (by user ID, date, region)
-  - Individual items are independent (no ordering requirement)
-  - You need to scale beyond what one worker can do
-```
-
-### The numbers
-
-```
-Single worker, cursor-based:
-  100M rows / 5,000 rows/sec = ~5.5 hours
-
-10 parallel workers, partitioned by ID range:
-  10M rows each / 5,000 rows/sec = ~33 minutes total
-
-50 Lambda functions, partitioned:
-  2M rows each / 5,000 rows/sec = ~7 minutes total
-```
-
-Parallelism helps linearly — until you hit the destination's write throughput or the source's read capacity. 50 workers each doing 5,000 reads/sec = 250,000 reads/sec on the source. Your Postgres instance probably can't handle that. Always calculate both the per-worker rate and the aggregate load on shared resources.
+Parallelism scales linearly — until you saturate the source or destination. 50 workers each doing 5,000 reads/sec = 250,000 reads/sec on your Postgres primary. **Always calculate aggregate load, not just per-worker rate.**
 
 ## Protecting Production
 
-The hardest part of large data operations isn't the data — it's not breaking the live system while moving it.
+### Throttle aggressively
 
-### Throttling
-
-Never run a migration at full speed against a production database. The migration will consume connections, I/O, and CPU that serve live traffic.
+An unthrottled migration consumes connections, I/O, and CPU that live traffic needs.
 
 ```
 Unthrottled:
-  Migration:  ████████████████████████████████████████
-  Live traffic: ██░░██░░░░██░░░░██░░░░  (starved)
+  Migration:     ████████████████████████████████████████
+  Live traffic:  ██░░██░░░░██░░  (starved, latency spikes)
 
-Throttled (sleep 100ms between batches):
-  Migration:  ████░░████░░████░░████░░████░░████░░████
-  Live traffic: ██████████████████████████████████████  (healthy)
+Throttled (100ms sleep between batches):
+  Migration:     ████░░████░░████░░████░░████░░████░░████
+  Live traffic:  ████████████████████████████████████████
 ```
 
-Rules of thumb:
+Keep migration load below 20% of database capacity. Monitor CPU, active connections, and replication lag throughout.
 
-- Keep migration to < 20% of database capacity
-- Monitor active connections, CPU, and replication lag during migration
-- Add sleep between batches (start with 100ms, adjust based on load)
-- Run during low-traffic hours if possible
-
-### Read replicas for extraction
-
-Don't read from the primary for large scans. Use a read replica:
+### Read from replicas, not the primary
 
 ```
 Primary (serves live traffic)
-  │
-  └──replication──→ Replica (migration reads from here)
-                      │
-                      └──→ Migration worker
+  └──replication──→ Replica ──→ Migration worker
 ```
 
-This isolates the migration's read load from production. Watch replication lag — if the migration puts too much load on the replica, it falls behind the primary.
+Isolates migration read load entirely. Watch replica lag — if the migration overloads the replica, it falls behind.
 
 ### Backpressure
 
-If your pipeline is: Source → Queue → Worker → Destination, and the destination is slow, the queue fills up. Without backpressure, you either run out of memory or start dropping data.
+If the destination is slow, the queue fills up. Prevent data loss by: blocking producers when the queue is full (push), limiting producer rate regardless of consumer speed (rate-limit), or having the consumer request work when ready (pull). Pull models are generally safer.
 
-Backpressure strategies:
+---
 
-- **Fixed-size queue:** Producer blocks when queue is full (worker pulls, processes, then allows more)
-- **Rate limiting:** Producer emits at a fixed rate regardless of consumer speed
-- **Consumer-driven:** Consumer requests work when ready (pull model vs push model)
+## Key Mental Models
 
-## Common ETL Patterns
-
-### Database to database (schema migration, platform migration)
-
-```
-Source DB ──COPY TO──→ CSV/Parquet ──transform──→ COPY FROM──→ Destination DB
-```
-
-For simple schema changes (add column, rename, change type), prefer `ALTER TABLE` with backfill over export/import. For cross-platform (Postgres to DynamoDB), export + transform + load is usually the path.
-
-### Database to warehouse (analytics ETL)
-
-```
-Nightly:
-  Source DB ──COPY TO──→ S3 (Parquet) ──→ Redshift/BigQuery COPY
-
-Streaming:
-  Source DB ──CDC──→ Kafka ──→ S3 (micro-batches) ──→ Warehouse
-```
-
-Parquet is the format of choice for analytical workloads — columnar, compressed, splittable. A 10 GB CSV becomes ~2-3 GB Parquet.
-
-### Service-to-service data sync
-
-```
-Service A ──events──→ Kafka ──→ Service B (maintains its own view)
-```
-
-Each service owns its data. When Service B needs data from Service A, it consumes events and builds a local projection. This is eventual consistency — Service B may be seconds behind. If that's unacceptable, use a synchronous API call instead.
-
-## Worked Example: Migrating 200M Orders to a New Schema
-
-**Given:** E-commerce platform, 200 million order rows (~100 GB), need to split the `orders` table into `orders` + `order_items` (normalisation). System must stay live.
-
-**Estimation:**
-
-```
-200M rows at ~500 bytes each = ~100 GB
-
-Reading (COPY TO):    200M / 200,000 rows/sec = ~17 minutes
-Transform:            CPU-bound, ~100,000 rows/sec = ~33 minutes
-Writing (COPY FROM):  200M / 200,000 rows/sec = ~17 minutes
-Total (sequential):   ~67 minutes
-
-With 10 parallel workers (partitioned by order_id range):
-  20M rows each, ~7 minutes per worker
-  Total: ~10 minutes (limited by destination write throughput)
-```
-
-**Plan:**
-
-```
-Phase 1: Prepare (no user impact)
-  - Create new tables (orders_v2, order_items)
-  - Deploy code that can read from old OR new schema (feature flag)
-  - Build and test the migration script against a replica
-
-Phase 2: Backfill historical data
-  - Read from replica (not primary)
-  - Partition by order_id range, fan out to 10 workers
-  - Each worker: read batch → split order + items → write to new tables
-  - Checkpoint after each batch (store last processed order_id)
-  - Throttle to keep replica lag < 1 second
-  - Duration: ~10-15 minutes
-
-Phase 3: Catch up + dual write
-  - Enable dual-write: new orders write to both old and new schema
-  - Run catch-up migration for orders created during Phase 2
-  - This gap is small (15 min of orders = maybe 50K rows = seconds)
-
-Phase 4: Verify
-  - Shadow reads: query both old and new, compare results
-  - Run reconciliation: count rows, compare totals, spot-check
-  - Fix any discrepancies
-
-Phase 5: Switch reads
-  - Flip feature flag: reads now come from new schema
-  - Old schema still receives writes (safety net)
-  - Monitor error rates, latencies
-
-Phase 6: Clean up
-  - Stop dual-writing to old schema
-  - Keep old tables for N days as backup
-  - Drop old tables
-```
-
-**What can go wrong:**
-
-| Risk                              | Mitigation                                                                |
-| --------------------------------- | ------------------------------------------------------------------------- |
-| Migration worker crashes mid-way  | Checkpointing + idempotent writes (UPSERT). Restart from last checkpoint. |
-| New orders arrive during backfill | Dual-write catches them. Catch-up phase handles the gap.                  |
-| Data mismatch between old and new | Shadow reads + reconciliation job before switching.                       |
-| Migration overloads production DB | Read from replica. Throttle writes. Monitor and pause if needed.          |
-| Rollback needed after switch      | Old tables still exist. Flip feature flag back.                           |
-
-## Key Takeaways
-
-**1. Know the numbers.** Moving 1 TB within a data centre takes ~30 minutes. Scanning 100M database rows takes hours without `COPY` or parallelism. Single-row inserts are 50x slower than batched. Always estimate before starting.
-
-**2. Batch for throughput, stream for freshness.** If the data can be hours old, batch it. If downstream needs it in seconds, stream it. Most systems use both — stream for operations, batch for analytics.
-
-**3. Protect production.** Throttle, read from replicas, monitor lag. The migration itself is never the hard part — doing it without affecting live users is.
-
-**4. Checkpoint everything.** Any job that runs for more than a few minutes must be resumable. Store progress externally. Make writes idempotent. Assume the process will crash and design for it.
-
-**5. Parallelism scales linearly until it doesn't.** 10 workers = ~10x faster, but only until you saturate the source or destination. Calculate aggregate load on shared resources, not just per-worker throughput.
+1. **Time = rows / throughput.** Estimate before starting. 100M rows at 5,000/sec = 5.5 hours.
+2. **COPY is 10–50x faster than SELECT.** For bulk reads and loads, bypass the query engine.
+3. **Batching is 50x faster than single-row INSERTs.** Never insert rows one at a time at scale.
+4. **1 TB within a datacentre = ~30 minutes. Over the internet = hours.** Location determines transfer time.
+5. **Batch for throughput, stream for freshness.** Most systems use both for the same data.
+6. **CDC is the cleanest live migration tool.** WAL reads don't touch production tables; snapshot + stream covers history and ongoing changes.
+7. **Dual-write requires reconciliation.** No atomic guarantee across two systems means divergence is possible — plan for it.
+8. **Checkpoint everything that runs longer than a few minutes.** Assume crashes. Design for restart, not retry from zero.
+9. **Parallelism scales linearly until the shared resource saturates.** Calculate aggregate load, not per-worker load.
+10. **Throttle migrations to < 20% of DB capacity.** The migration is never the point — protecting live traffic is.
