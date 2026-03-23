@@ -101,6 +101,8 @@ Repeat until refresh token expires or user logs out (refresh token deleted).
 
 Refresh token rotation: each use issues a new refresh token and invalidates the old one. If a stolen token is used, the legitimate user's next refresh fails — detectable.
 
+The client sends the refresh token to the auth server's `/oauth/token` endpoint with `grant_type: refresh_token`. The auth server's base URL is configured once at app startup — the library derives all endpoint URLs from the OIDC discovery doc at `/.well-known/openid-configuration`.
+
 ## Bearer Tokens and API Keys
 
 **Bearer token** is a transport mechanism, not a format. It means "whoever holds this string, trust them."
