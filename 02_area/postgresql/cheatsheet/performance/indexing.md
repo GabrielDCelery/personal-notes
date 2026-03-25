@@ -190,6 +190,102 @@ EXPLAIN SELECT customer_id FROM orders WHERE customer_id = 42;
 
 If you see high "Heap Fetches", run `VACUUM orders;` to update the visibility map.
 
+## GIN Deep Dive
+
+### How GIN works internally
+
+A regular B-tree index maps one value per row to a sorted lookup. GIN (Generalised Inverted Index) handles columns where a single row contains **multiple values** (arrays, JSONB, tsvector). It inverts the relationship:
+
+Instead of `row → values`, GIN builds `value → list of rows`:
+
+```
+-- Given:
+station 1: ['market', 'cloning', 'repair']
+station 2: ['market', 'reprocessing-plant']
+station 3: ['cloning', 'insurance']
+
+-- GIN index stores:
+'market'             → [station 1, station 2]
+'cloning'            → [station 1, station 3]
+'repair'             → [station 1]
+'reprocessing-plant' → [station 2]
+'insurance'          → [station 3]
+```
+
+Query `WHERE services @> ARRAY['market']` goes straight to the 'market' entry — no full scan.
+
+### `@>` containment vs path extraction
+
+For JSONB, there are two ways to query a field — they look similar but behave differently with indexes:
+
+```sql
+-- Containment (@>) — uses GIN index
+WHERE data @> '{"race": "caldari"}'
+WHERE data @> '{"station": {"race": "caldari"}}'  -- works at any nesting depth
+
+-- Path extraction — does NOT use GIN index, requires a B-tree expression index
+WHERE data->>'race' = 'caldari'
+WHERE data->'station'->>'race' = 'caldari'
+```
+
+Use `@>` for equality/existence checks. Use path extraction for ranges, NULLs, sorting, or LIKE — and add a B-tree expression index if the query runs frequently:
+
+```sql
+CREATE INDEX idx_race ON my_table ((data->>'race'));
+```
+
+### When GIN doesn't help (use B-tree instead)
+
+Path extraction queries need B-tree expression indexes:
+
+```sql
+-- Range comparison — can't use @>
+WHERE data->>'temperature' > '5000'
+
+-- NULL check
+WHERE data->>'deleted_at' IS NULL
+
+-- Sorting
+ORDER BY data->>'name'
+
+-- LIKE pattern
+WHERE data->>'name' LIKE '%jita%'
+```
+
+### Array columns: intentional denormalisation
+
+Storing a fixed set of values as `TEXT[]` with a GIN index is a valid alternative to a junction table when:
+
+- The data is read-only or rarely updated (no update anomaly risk)
+- The values are a fixed known enum (no inconsistency risk)
+- The query pattern is simple containment ("has this station got service X?")
+- Scale is small enough that a junction table adds complexity without benefit
+
+```sql
+-- Store
+services TEXT[]
+
+-- Index
+CREATE INDEX idx_station_services ON stations USING GIN (services);
+
+-- Query
+WHERE services @> ARRAY['reprocessing-plant']
+```
+
+GIN on `TEXT[]` supports exact element matching only — not partial text search. For partial search on array elements, create a TSVECTOR from the array and GIN index that instead.
+
+### `jsonb_path_ops` variant
+
+A smaller, faster GIN index that only supports `@>` containment:
+
+```sql
+CREATE INDEX idx_data_path ON my_table USING GIN (data jsonb_path_ops);
+```
+
+Use when you only need containment queries and want a leaner index. Does not support `?` (key existence) or `?|`/`?&` operators.
+
+---
+
 ## When NOT to Index
 
 - Small tables (< few thousand rows) — Seq Scan is faster
