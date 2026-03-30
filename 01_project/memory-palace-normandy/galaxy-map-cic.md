@@ -10,7 +10,7 @@ The CIC is the nerve centre of the Normandy — where Shepard plots courses and 
                             [Pressly's Station]
 ```
 
-You enter from the top. Kelly is front left, comms terminal is front right, galaxy map is centre further in, Pressly is further right beyond the terminal. Flat workstations around the galaxy map — empty, negative space.
+You enter from the top. Galaxy map is centre. Kelly is immediately to your right, comms terminal is further right, Pressly is beyond the terminal. Flat workstations around the galaxy map — empty, negative space.
 
 ## Route Through the Room
 
