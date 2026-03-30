@@ -12,7 +12,14 @@ The CIC is the nerve centre of the Normandy — where Shepard plots courses and 
 
 ## Route Through the Room
 
-Enter → Galaxy Map → Left Comms Terminal → Pressly's Station → Kelly's Station → Exit
+1. **Galaxy map** — classify the operation (which speed world?)
+2. **Left comms terminal** — convert traffic numbers to RPS
+3. **Pressly's terminal** — identify the mission tier
+4. **Pressly's notepad** — check the ship's capacity limits
+5. **Kelly intercepts** — "did you decompose the load first?" four fingers, rock on
+6. **Walk to Kelly** — sticky note, "most systems are smaller than you think"
+
+It's a story, not a list. You're pulled through the room naturally.
 
 ---
 
@@ -38,12 +45,12 @@ A device for bridging enormous scale differences. You "dial in" your time period
 
 **The rule:** always drop 5 zeros. Only the scaling factor changes.
 
-| Time Period | Scaling Factor | Operation        |
-|-------------|---------------|------------------|
-| 1 hour      | ×30           | ×30, drop 5      |
-| 1 day       | ×1            | drop 5 (anchor)  |
-| 1 month     | ÷30           | ÷30, drop 5      |
-| 1 year      | ÷300          | ÷300, drop 5     |
+| Time Period | Scaling Factor | Operation       |
+| ----------- | -------------- | --------------- |
+| 1 hour      | ×30            | ×30, drop 5     |
+| 1 day       | ×1             | drop 5 (anchor) |
+| 1 month     | ÷30            | ÷30, drop 5     |
+| 1 year      | ÷300           | ÷300, drop 5    |
 
 **Peak multiplier:** ×3 — always applied after.
 
@@ -55,39 +62,76 @@ A device for bridging enormous scale differences. You "dial in" your time period
 
 Pressly is standing at his station, slightly hunched, holding a notepad protectively. You are standing behind him looking over his shoulder.
 
+### Current Ship State
+
+This is post-Horizon. The ship has been through its first real fight and Pressly has already done the basic hardening:
+
+- Single app server
+- r6g.xlarge DB
+- Indexes in place
+- Connection pooling (PgBouncer) running
+- No cache yet. No read replicas. No horizontal scaling.
+
 ### Notepad (in his hands)
 
-A hand-drawn bar chart in pencil — the ship's limits, what each layer can handle before it breaks:
+A hand-drawn bar chart in pencil — the ship's current capacity limits:
 
 ```
-writes  |█          1K    DB write tx/sec
-reads   |██████████ 10K   DB read QPS
-cache   |████████████████ 100K  cache ops/sec
+writes  |█          1K    ← circled (we are right at the limit)
+reads   |██████████ 10K
+cache   |████████████████ 100K  ?
+         * r6g.xlarge
 ```
 
 Each bar is 10× longer than the one above. Each tier is 10× apart.
 
+- **Writes are circled** — we survived Horizon but one traffic spike and we're over
+- **Reads are comfortable** — underlined as the next thing to watch
+- **Cache has a question mark** — Pressly looked at Loyalty Missions, did the math in his head, and added it before anyone asked. Not in place yet, but he knows exactly what it would give us. When we hit Loyalty Missions he'll cross out the question mark without saying a word.
+
+No multipliers on the notepad — Pressly does that in his head. Kelly makes sure you've done it too before he starts his check.
+
 ### Terminal (in front of him)
 
-A mission briefing screen — the mission demands, incoming RPS mapped to Mass Effect missions:
+A mission briefing screen — incoming RPS mapped to Mass Effect missions, cross-referenced against the notepad:
 
 ```
-~100 RPS     → Illium
-~1,000 RPS   → Horizon        → index, pool
-~10,000 RPS  → [TBD mission]  → cache, replicas
-~100,000 RPS → Suicide Mission → distributed, CDN, sharding
-~1,000,000   → THE REAPERS   → DARK SPACE
+~100 RPS     → Illium              →
+~1,000 RPS   → Horizon             → bigger server, index, pool
+~10,000 RPS  → Loyalty Missions    → cache, replicas, monitoring
+~100,000 RPS → Suicide Mission     → distributed, CDN, sharding
+~1,000,000   → THE REAPERS         → DARK SPACE
 ```
+
+**How the current ship maps against each mission:**
+
+| Mission          | Read QPS needed | Write tx/sec needed | Can we handle it?          |
+| ---------------- | --------------- | ------------------- | -------------------------- |
+| Illium (~100 RPS)   | 400 QPS         | 100 tx/sec          | ✓ Pressly is relaxed       |
+| Horizon (~1K RPS)   | 4K QPS          | 1K tx/sec           | ⚠ writes right at ceiling  |
+| Loyalty (~10K RPS)  | 40K QPS         | 10K tx/sec          | ✗ 4× over ceiling — not ready |
+| Suicide (~100K RPS) | 400K QPS        | 100K tx/sec         | ✗ needs full overhaul      |
+| The Reapers         | —               | —                   | DARK SPACE                 |
+
+**Narrative arc:**
+
+- **Illium** — routine, nothing needed, Kelly has the answer
+- **Horizon** — scrappy survival, patch what you have, no new components ← we are here
+- **Loyalty Missions** — invest in each component to unlock full potential, one by one
+- **Suicide Mission** — everyone has a role, single points of failure get people killed, full coordination
+- **The Reapers** — you didn't build for this, everything is custom, good luck
 
 ### The Narrative
 
-Pressly is doing a pre-jump capacity check. The notepad tells him what the ship can handle. The terminal tells him what the mission requires. He cross-references the two — decomposing incoming RPS into DB reads, DB writes, and cache ops — before committing to a course.
+Pressly is doing a pre-jump capacity check. The notepad is the ship's current limits. The terminal is the mission demand. He cross-references the two. The writes are circled — he's worried. We survived Horizon but only just. The next mission requires upgrades before we jump.
+
+You ask "can we handle the next mission?" Kelly jumps in before he answers.
 
 ### Key Decisions
 
-- The notepad is **internal layer limits** (ops/sec per tier)
-- The terminal is **external incoming RPS** (mission scale)
-- The multiplier between them: reads ×3–5 queries/request, writes ×1 tx/request
+- The notepad is **current ship capacity** (what we can handle right now)
+- The terminal is **mission demand** (what we're being asked to handle)
+- Multipliers live in Pressly's head — Kelly makes sure they live in yours too
 
 ---
 
@@ -102,15 +146,19 @@ On her monitor, handwritten, slightly crooked:
 
 100K users × 100 actions/day = 10M/day ÷ 100K = **100 RPS**. One server. One DB. Fine.
 
+**The wordplay:** Kelly's note is visible from the galaxy map — the literal map of star systems. You're standing there looking at the entire galaxy, thousands of star systems, and her note says "most systems are smaller than you think." The galaxy map makes the joke land. All that scale, all that vastness, and Kelly's point is: yours isn't as big as you think it is.
+
 ### Her Expression
 
 That quiet "I told you so" smile. Soft exhale. Eyes flicking briefly to the sticky note then back to you. Someone mapped their 100 RPS app to the wrong mission tier again.
 
 ### Her Gestures
 
-- **Right hand** pointing at Pressly — *"did you decompose the load first?"*
-- **Left hand — four fingers** — reads multiply (×4 queries per request)
-- **Left hand — index and pinky (rock on sign)** — writes (1 pre-check read + 1 write tx) — weird enough to be unforgettable
+- **Right hand** pointing at Pressly — _"he's got the ceilings, but did you give him the right numbers?"_
+- **Left hand — four fingers** — reads ×4 queries per request
+- **Left hand — rock on sign (index and pinky)** — writes ×2 (1 pre-check read + 1 write tx)
+
+One flowing motion: point at Pressly → turn to you → four fingers → rock on. Kelly's correction loop.
 
 ### Her Glance
 
@@ -129,20 +177,23 @@ Kelly is calm, Kelly is always calm. But she's had this conversation before. The
 A close-up scene inside the CIC of the SSV Normandy SR-2. Navigator Pressly is standing at his workstation, slightly hunched forward, holding a notepad protectively in both hands. The player is standing behind him, looking over his shoulder.
 
 The notepad has a hand-drawn pencil bar chart, three rows, each bar visibly 10× longer than the one above, labelled:
+
 ```
 writes  |█          1K
 reads   |██████████ 10K
 cache   |████████████████████ 100K
 ```
+
 The notepad looks worn, like he has referenced it many times.
 
 On the terminal screen in front of him, a mission briefing display shows a tiered list of mission threat levels with corresponding RPS values:
+
 ```
-~100 RPS     → Illium
-~1,000 RPS   → Horizon
-~10,000 RPS  → [mission name]
-~100,000 RPS → Suicide Mission
-~1,000,000   → THE REAPERS
+~100 RPS     → Illium              →
+~1,000 RPS   → Horizon             → index, pool, bigger server
+~10,000 RPS  → Loyalty Missions    → cache, replicas, monitoring
+~100,000 RPS → Suicide Mission     → distributed, CDN, sharding
+~1,000,000   → THE REAPERS        → DARK SPACE
 ```
 
 The screen has a faint red glow at the bottom tier. Pressly looks tense, cross-referencing the notepad against the terminal as if calculating whether the ship can handle the mission ahead.
@@ -171,6 +222,6 @@ Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, ph
 
 ## Still To Do
 
-- Fill in the [TBD mission] for the ~10,000 RPS tier on Pressly's terminal
+- ~~Fill in the [TBD mission] for the ~10,000 RPS tier on Pressly's terminal~~ ✓ Loyalty Missions
 - Design anchors for the flat workstations (operational latencies still unplaced)
 - Generate images once prompts are finalised
