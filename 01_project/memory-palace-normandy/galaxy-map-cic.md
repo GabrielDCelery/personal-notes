@@ -15,7 +15,7 @@ You enter from the top. Galaxy map is centre. Kelly is immediately to your right
 ## Route Through the Room
 
 1. **Galaxy map** — classify the operation (which speed world?)
-2. **Comms terminal** (front right) — convert traffic numbers to RPS
+2. **Comms terminal** (front left) — convert traffic numbers to RPS
 3. **Pressly's terminal** — identify the mission tier
 4. **Pressly's notepad** — check the ship's capacity limits
 5. **Kelly intercepts** — "did you decompose the load first?" four fingers, rock on
