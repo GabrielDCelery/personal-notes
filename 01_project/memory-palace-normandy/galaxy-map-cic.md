@@ -5,15 +5,17 @@ The CIC is the nerve centre of the Normandy — where Shepard plots courses and 
 ## Room Layout
 
 ```
-[Left comms terminal]  [Galaxy map - holographic, center]  [Kelly Chambers - right]
-                       [flat workstations around the map]
-                       [Pressly's station - left of center]
+             [ENTER (elevator)]
+[Kelly Chambers][Galaxy Map][Comms Terminal]
+                            [Pressly's Station]
 ```
+
+You enter from the top. Kelly is front left, comms terminal is front right, galaxy map is centre further in, Pressly is further right beyond the terminal. Flat workstations around the galaxy map — empty, negative space.
 
 ## Route Through the Room
 
 1. **Galaxy map** — classify the operation (which speed world?)
-2. **Left comms terminal** — convert traffic numbers to RPS
+2. **Comms terminal** (front right) — convert traffic numbers to RPS
 3. **Pressly's terminal** — identify the mission tier
 4. **Pressly's notepad** — check the ship's capacity limits
 5. **Kelly intercepts** — "did you decompose the load first?" four fingers, rock on
@@ -39,22 +41,29 @@ The 1,000× gap between each ring is implied by the increasing distance between 
 
 ---
 
-## Anchor 2 — Left Comms Terminal (Time Conversion — Drop 5 Zeros)
+## Anchor 2 — Comms Terminal (Time Conversion — Drop 5 Zeros)
 
-A device for bridging enormous scale differences. You "dial in" your time period, apply the scaling factor, drop 5 zeros, arrive at RPS.
+A passing stop — you glance at it on the way to Pressly, convert your raw traffic figure to RPS, arrive with the right number.
 
-**The rule:** always drop 5 zeros. Only the scaling factor changes.
+**Three steps, left to right:**
 
-| Time Period | Scaling Factor | Operation       |
-| ----------- | -------------- | --------------- |
-| 1 hour      | ×30            | ×30, drop 5     |
-| 1 day       | ×1             | drop 5 (anchor) |
-| 1 month     | ÷30            | ÷30, drop 5     |
-| 1 year      | ÷300           | ÷300, drop 5    |
+```
+[ DROP 5 ]  →  hour  ×30   →  [ ×3 PEAK ]
+               day   ×1  ◄
+               month ÷30
+               year  ÷300
+```
 
-**Peak multiplier:** ×3 — always applied after.
+Holographic panel, Mass Effect style — glowing blue. You tap your time period, it pulses brighter, the others dim. DROP 5 is always step one on the left, ×3 PEAK is always step three on the right. Day is highlighted by default — the anchor, the most common case.
 
-**Example:** 10M requests/day → 10M ÷ 100K = 100 RPS → ×3 = 300 peak RPS
+The sequence reads left to right: drop 5 zeros from your raw number, apply the time period factor, multiply by 3 for peak.
+
+**Examples:**
+
+- 10M requests/day → drop 5 → 100 → ×1 → 100 RPS → ×3 = 300 peak
+- 300M requests/month → drop 5 → 3,000 → ÷30 → 100 RPS → ×3 = 300 peak
+- 360K requests/hour → drop 5 → 3.6 → ×30 → 108 RPS → ×3 = 324 peak
+- 1B requests/year → drop 5 → 10,000 → ÷300 → 33 RPS → ×3 = 100 peak (still Illium)
 
 ---
 
@@ -105,13 +114,13 @@ A mission briefing screen — incoming RPS mapped to Mass Effect missions, cross
 
 **How the current ship maps against each mission:**
 
-| Mission          | Read QPS needed | Write tx/sec needed | Can we handle it?          |
-| ---------------- | --------------- | ------------------- | -------------------------- |
-| Illium (~100 RPS)   | 400 QPS         | 100 tx/sec          | ✓ Pressly is relaxed       |
-| Horizon (~1K RPS)   | 4K QPS          | 1K tx/sec           | ⚠ writes right at ceiling  |
+| Mission             | Read QPS needed | Write tx/sec needed | Can we handle it?             |
+| ------------------- | --------------- | ------------------- | ----------------------------- |
+| Illium (~100 RPS)   | 400 QPS         | 100 tx/sec          | ✓ Pressly is relaxed          |
+| Horizon (~1K RPS)   | 4K QPS          | 1K tx/sec           | ⚠ writes right at ceiling     |
 | Loyalty (~10K RPS)  | 40K QPS         | 10K tx/sec          | ✗ 4× over ceiling — not ready |
-| Suicide (~100K RPS) | 400K QPS        | 100K tx/sec         | ✗ needs full overhaul      |
-| The Reapers         | —               | —                   | DARK SPACE                 |
+| Suicide (~100K RPS) | 400K QPS        | 100K tx/sec         | ✗ needs full overhaul         |
+| The Reapers         | —               | —                   | DARK SPACE                    |
 
 **Narrative arc:**
 
@@ -172,6 +181,45 @@ Kelly is calm, Kelly is always calm. But she's had this conversation before. The
 
 ## Image Prompts
 
+### Galaxy Map
+
+A wide cinematic shot of the holographic galaxy map at the centre of the CIC aboard the SSV Normandy SR-2. The map dominates the room — a large glowing blue holographic projection floating above a circular pedestal.
+
+The map shows three concentric rings radiating outward from a bright central core:
+
+- **Inner ring** — bright white, tight around the core, labelled `ns`
+- **Middle ring** — softer blue, further out, labelled `μs`
+- **Outer ring** — dim and distant, barely visible at the edges, labelled `ms`
+
+The distance between each ring is visibly much larger than the last — implying the 1,000× gap between each world. The outer ring feels unreachably far from the centre.
+
+Flat workstations around the map are empty and dark — negative space. No crew present. The room is quiet, the map is the only thing that matters.
+
+Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
+### Comms Terminal
+
+A close-up of a holographic communications terminal inside the CIC of the SSV Normandy SR-2. The terminal glows blue, Mass Effect style — no physical buttons, pure light.
+
+The display shows a three-step sequence reading left to right:
+
+```
+[ DROP 5 ]  →  hour  ×30   →  [ ×3 PEAK ]
+               day   ×1  ◄ (highlighted, pulsing)
+               month ÷30
+               year  ÷300
+```
+
+DROP 5 is on the left in a bright panel. The time period selector is in the centre — four rows, day highlighted brighter than the others. ×3 PEAK is on the right in a bright panel. The arrow flow left to right is clear.
+
+The terminal looks like a passing stop — functional, minimal, designed to be read in seconds.
+
+Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
 ### Pressly's Station
 
 A close-up scene inside the CIC of the SSV Normandy SR-2. Navigator Pressly is standing at his workstation, slightly hunched forward, holding a notepad protectively in both hands. The player is standing behind him, looking over his shoulder.
@@ -220,8 +268,12 @@ Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, ph
 
 ---
 
+## Content Moved to Other Rooms
+
+- **Operational latencies** (Redis, Postgres, external APIs) → Cockpit (Joker) — "how fast can we get there"
+- **Size and bandwidth anchors** (500MB fits in RAM, 1TB → S3) → Engineering (Tali) — physical infrastructure, what the ship can carry
+- **Bottleneck types** (DB = throughput, external API = latency) → Cockpit (Joker)
+
 ## Still To Do
 
-- ~~Fill in the [TBD mission] for the ~10,000 RPS tier on Pressly's terminal~~ ✓ Loyalty Missions
-- Design anchors for the flat workstations (operational latencies still unplaced)
 - Generate images once prompts are finalised
