@@ -48,15 +48,15 @@ A passing stop — you glance at it on the way to Pressly, convert your raw traf
 **Three steps, left to right:**
 
 ```
-[ DROP 5 ]  →  hour  ×30   →  [ ×3 PEAK ]
-               day   ×1  ◄
-               month ÷30
-               year  ÷300
+hour  ×30
+day   ×1  ◄  →  [ DROP 5 ]  →  [ ×3 PEAK ]
+month ÷30
+year  ÷300
 ```
 
-Holographic panel, Mass Effect style — glowing blue. You tap your time period, it pulses brighter, the others dim. DROP 5 is always step one on the left, ×3 PEAK is always step three on the right. Day is highlighted by default — the anchor, the most common case.
+Holographic panel, Mass Effect style — glowing blue. You tap your time period, it pulses brighter, the others dim. The time period selector is always step one on the left, ×3 PEAK is always step three on the right. Day is highlighted by default — the anchor, the most common case.
 
-The sequence reads left to right: drop 5 zeros from your raw number, apply the time period factor, multiply by 3 for peak.
+The sequence reads left to right: convert to requests per day, drop 5 zeros to get RPS (because ~100K seconds in a day), multiply by 3 for peak.
 
 **Examples:**
 
@@ -206,13 +206,13 @@ A close-up of a holographic communications terminal inside the CIC of the SSV No
 The display shows a three-step sequence reading left to right:
 
 ```
-[ DROP 5 ]  →  hour  ×30   →  [ ×3 PEAK ]
-               day   ×1  ◄ (highlighted, pulsing)
-               month ÷30
-               year  ÷300
+hour  ×30
+day   ×1  ◄ (highlighted, pulsing)  →  [ DROP 5 ]  →  [ ×3 PEAK ]
+month ÷30
+year  ÷300
 ```
 
-DROP 5 is on the left in a bright panel. The time period selector is in the centre — four rows, day highlighted brighter than the others. ×3 PEAK is on the right in a bright panel. The arrow flow left to right is clear.
+The time period selector is on the left — four rows, day highlighted brighter than the others. DROP 5 is in the centre in a bright panel. ×3 PEAK is on the right in a bright panel. The arrow flow left to right is clear.
 
 The terminal looks like a passing stop — functional, minimal, designed to be read in seconds.
 
@@ -227,12 +227,13 @@ A close-up scene inside the CIC of the SSV Normandy SR-2. Navigator Pressly is s
 The notepad has a hand-drawn pencil bar chart, three rows, each bar visibly 10× longer than the one above, labelled:
 
 ```
-writes  |█          1K
+writes  |█          1K  ← circled in red
 reads   |██████████ 10K
 cache   |████████████████████ 100K
+         * r6g.xlarge
 ```
 
-The notepad looks worn, like he has referenced it many times.
+The 1K writes row is circled in red pencil — emphasis that the ship is right at the limit. Below the chart, a small annotation reads "r6g.xlarge". The notepad looks worn, like he has referenced it many times.
 
 On the terminal screen in front of him, a mission briefing display shows a tiered list of mission threat levels with corresponding RPS values:
 
