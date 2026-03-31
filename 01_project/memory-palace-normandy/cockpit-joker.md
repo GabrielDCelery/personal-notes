@@ -87,9 +87,13 @@ One bay is now yours. The cost is the distance — radio waves travel at the spe
 On the comms panel: Omega's docking bay status board. Shows how many bays are claimed vs still available.
 
 ```
-Omega     ● ● ● ● ○ ○    four claimed, two available — comfortable
-Citadel   ● ○            one claimed, one available
-Horizon   ● ● ●          all three claimed — tight
+── CONNECTIONS ────────────────────────────
+Omega     ● ● ● ● ○ ○    4 in use / 2 available
+Citadel   ● ○            1 in use / 1 available
+Horizon   ● ● ●          all 3 in use — pool exhausted
+── IDENTITY ───────────────────────────────
+OAuth     ↑ external     relay trip per request
+JWT       ✓ local        EDI verifies onboard
 ```
 
 **Orange** = bay claimed, connection held open. **Green** = bay free, available. **All orange** = pool exhausted — new requests queue until a bay is released.
@@ -205,9 +209,10 @@ A wide shot of the cockpit of the SSV Normandy SR-2. The player has just entered
 Through the large wraparound viewport, space stretches ahead — stars and a distant nebula.
 
 Overhead, an HUD display shows three horizontal bands:
-- Green band labelled "1 ms — inter-planet hop"
-- Yellow band labelled "5 ms — planetary landing" — a small crooked sticky note attached reading "77% of your time"
-- Orange band labelled "50 ms — relay travel"
+
+- Green band labelled "1 ms — inter-planet hop / intra-DC service call"
+- Yellow band labelled "5 ms — planetary landing / database query" — a small crooked sticky note attached reading "77% of your time"
+- Orange band labelled "50 ms — relay travel / external API call"
 
 To Joker's left, EDI's holographic sphere glows calm blue. To his right, the comms panel is active. The room is small and functional — every surface has a purpose.
 
@@ -219,9 +224,9 @@ Dark, blue-lit military cockpit aesthetic. Mass Effect 2 visual style. Cinematic
 
 A close-up of the overhead HUD display above the pilot's seat in the cockpit of the SSV Normandy SR-2. Three horizontal fuel efficiency bands reading top to bottom:
 
-- Green band labelled "1 ms — inter-planet hop"
-- Yellow band labelled "5 ms — planetary landing" — the brightest of the three, a small handwritten sticky note slightly crooked attached next to it reading "77% of your time"
-- Orange band labelled "50 ms — relay travel"
+- Green band labelled "1 ms — inter-planet hop / intra-DC service call"
+- Yellow band labelled "5 ms — planetary landing / database query" — the brightest of the three, a small handwritten sticky note slightly crooked attached next to it reading "77% of your time"
+- Orange band labelled "50 ms — relay travel / external API call"
 
 The yellow band dominates visually. The sticky note draws the eye immediately.
 
@@ -233,15 +238,19 @@ Dark, blue-lit HUD aesthetic. Mass Effect 2 visual style. Cinematic, photorealis
 
 A close-up of the communications panel to the right of the pilot's seat in the cockpit of the SSV Normandy SR-2. The panel glows blue, Mass Effect style — clean holographic interface, no physical buttons.
 
-Three rows of circular status indicators showing docking bay connections to key destinations:
+Two sections on the panel, separated by labelled dividers:
 
 ```
-Omega     ● ● ● ● ○ ○    four orange (claimed), two green (available)
-Citadel   ● ○            one orange, one green
-Horizon   ● ● ●          all three orange — tight
+── CONNECTIONS ────────────────────────────
+Omega     ● ● ● ● ○ ○    4 connections in use / 2 available
+Citadel   ● ○            1 in use / 1 available
+Horizon   ● ● ●          all 3 in use — pool exhausted
+── IDENTITY ───────────────────────────────
+OAuth     ↑ external     relay trip per request
+JWT       ✓ local        EDI verifies onboard
 ```
 
-Orange indicators glow warm amber. Green indicators glow soft teal. Labels in clean military font. The panel looks active — a working comms station mid-operation.
+Orange indicators glow warm amber — connection claimed, held open via keep-alive. Green indicators glow soft teal — slot available. The IDENTITY section has no dots — OAuth shows an upward arrow indicating it leaves the system boundary, JWT shows a checkmark indicating local verification only. Labels in clean military font. The panel looks active — a working comms station mid-operation.
 
 Dark, blue-lit military cockpit aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
 
