@@ -67,13 +67,17 @@ He closes the channel, glances up at the HUD fuel gauge, plots the route. Once t
 Overhead display above Joker's seat. Four bands — the cost of every journey type. Joker glances at it instinctively before answering any route question. It's reflex.
 
 ```
-█████  1 ms    inter-planet hop     green   — routine, barely registers
-█████  5 ms    planetary landing    yellow  — expected destination cost
-█████  50 ms   relay travel         orange  — you left the system, was it worth it?
-█████  500 ms  thrusters only       red     — FTL is down, something is broken
+█████  1 ms    inter-planet hop     green
+█████  5 ms    planetary landing    yellow  [sticky note: "77% of your time"]
+█████  50 ms   relay travel         orange
+█████  500 ms  thrusters only       red
 ```
 
+A sticky note is taped next to the yellow band, slightly crooked: **"77% of your time"**. The landing dominates. Everything else is noise by comparison.
+
 **Healthy request** — one inter-planet hop (1 ms), one planetary landing and back (5 ms). Seven units total. Textbook.
+
+**What happens when the landing goes wrong** — you are stranded. The shuttle is on the surface, Joker can't fly, the whole request is waiting. Not a slow journey — a grounded one. Joker's worst nightmare. *"I'm a pilot. I fly. I don't sit on Omega waiting for a database that can't find a record it should've indexed three years ago."*
 
 **500 ms is not the ship destroyed** — it's the FTL drive down. You fix it by repairing the engine: add the index, fix the N+1, enable the connection pool. Fix the pattern, not the ship.
 
