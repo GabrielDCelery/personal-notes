@@ -21,7 +21,7 @@ EDI's holographic sphere is to Joker's left. Comms panel is to his right. You en
 ## Route Through the Room
 
 1. **Enter** — Joker is mid-comms on the panel, establishing a channel
-2. **Comms panel** — TCP/TLS handshake in progress, connection pool indicators visible
+2. **Comms panel** — TCP/TLS handshake in progress, connection pool indicators visible, JWT/OAuth identity section
 3. **HUD overhead** — route cost classification, Joker glances at it as he plots the course
 4. **Joker talking** — full request journey as a flight plan, DNS complaint during travel
 5. **EDI sphere** — failure scenarios, when requests cross into seconds
@@ -84,7 +84,7 @@ One bay is now yours. The cost is the distance — radio waves travel at the spe
 
 ### Docking Bay Status (Connection Pool)
 
-On the comms panel: Omega's docking bay status board. Shows how many bays are claimed vs still available.
+On the comms panel: a destination status board. Shows active connections and available slots for each destination.
 
 ```
 ── CONNECTIONS ────────────────────────────
@@ -110,7 +110,7 @@ Once the channel is open, the next question is identity. Auth is not physical tr
 
 _"Call once, cache the result. Stop burning my comms budget."_
 
-**The rule** — verify once at the edge, pass a trusted internal token downstream. If every service independently calls an external auth station, you pay 50–100 ms per service per request.
+**The rule** — verify once at the edge, pass a trusted internal token downstream. If every service independently calls an external auth station, you pay a relay trip per service per request.
 
 ---
 
