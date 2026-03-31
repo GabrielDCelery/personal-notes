@@ -28,25 +28,6 @@ EDI's holographic sphere is to Joker's left. Comms panel is to his right. You en
 
 ---
 
-## The Geography
-
-Distance = latency. The cost of any operation maps directly to how far you have to travel:
-
-| Cost      | Journey                                               | Represents                           |
-| --------- | ----------------------------------------------------- | ------------------------------------ |
-| 1 ms      | Inter-planet hop — sub-light burn to a nearby station | Intra-DC service call, load balancer |
-| 5 ms      | Planetary landing — descent, retrieve, ascend         | DB query with index                  |
-| 50 ms     | Flying to the relay — leaving your system boundary    | External API call per request        |
-| 20–100 ms | Citadel visit — first time only                       | Cold DNS lookup                      |
-
-**Within your system** (same datacenter) — you never need a relay. Station hops and planetary landings only.
-
-**Leaving your system** — you fly to the relay. The travel to the relay is the 50 ms. The jump itself is near-instant, but you pay the routing cost to cross the network boundary.
-
-**The Citadel** — DNS. Deep in the network, multiple relay hops away. You go once, load the star charts into the nav computer, and never go back just to look up an address. Radio waves travel at the speed of light — a comms signal to a distant destination takes the same time as physically travelling there. You cannot beat physics.
-
----
-
 ## The Entry Scene
 
 You walk into the cockpit. Joker is on the comms panel, mid-handshake with a destination:
@@ -57,7 +38,13 @@ He holds up a hand without turning — _"with me in a second."_
 
 He closes the channel, glances up at the HUD fuel gauge, plots the route. Once the ship starts moving he relaxes into the seat and starts venting:
 
-_"You know what I hate? When someone sets the nav computer to forget coordinates after every jump. We went to the Citadel in 2183, got the charts, they're in the nav computer. So why am I flying back to the Citadel every single request just to look up Omega's coordinates? Someone broke the nav computer."_
+_"You know what I hate? When someone sets the nav computer to forget coordinates after every jump. We went to the Citadel in 2183, got the charts, they're in the nav computer. So why am I flying back to the Citadel every single—"_
+
+EDI glows red.
+
+_"Oh, there is worse, Mr. Moreau."_
+
+→ continues in Anchor 4
 
 ---
 
@@ -80,8 +67,6 @@ A sticky note is taped next to the yellow band, slightly crooked: **"77% of your
 ---
 
 ## Anchor 2 — Comms Panel (TCP/TLS + Connection Pooling)
-
-The comms panel is to Joker's right. You walk in on him using it.
 
 ### Establishing the Channel (TCP/TLS)
 
@@ -114,14 +99,6 @@ Horizon   ● ● ●          all three claimed — tight
 ### Auth Costs (Who Are You?)
 
 Once the channel is open, the next question is identity. Auth is not physical travel — it is a comms call. The cost is how far the signal has to travel.
-
-```
-JWT                 EDI verifies internally       no call made        ~0.1 ms
-Session → Redis     ping to a nearby station      one round trip      ~1 ms
-Session → DB        ping requiring a landing      network + query     ~5 ms
-OAuth               long-distance call to         crosses system      10–100 ms
-                    an external authority         boundary
-```
 
 **JWT** — EDI already holds the public key onboard. She verifies the token locally against a key she already has. No comms needed. No travel. Pure CPU.
 
@@ -156,13 +133,6 @@ _"We went in 2183. It's in the nav computer. I am not flying back to the Citadel
 
 **DNS TTL = 0** — the nav computer is configured to forget coordinates after every jump. Joker is making the Citadel trip every single request. _"Someone broke the nav computer."_
 
-### The Journey (Every Request After the First)
-
-1. **Leave the dock** — request parsed, routed to the right place. One inter-planet hop. 1 ms.
-2. **Fly to Omega** — travel to the DB within your system. In-system, no relay needed. 1 ms.
-3. **Land, retrieve, ascend** — the DB does the work. With coordinates: fast. Without: you're wandering.
-4. **Return** — serialised response, same hops in reverse.
-
 ### Omega (DB Performance)
 
 Omega is the destination. Once you land, how long you spend depends entirely on whether you have coordinates:
@@ -190,41 +160,21 @@ EDI's holographic sphere is to Joker's left, glowing its normal calm blue. She m
 
 The color change is the threshold. No number needed — the moment EDI goes red, you have crossed from "slow" into "fix the pattern."
 
-### The Three Anecdotes
+### The Conversation
 
-EDI switches to red and narrates each failure scenario with complete calm. Joker gets progressively more exasperated.
+EDI interrupts Joker mid-complaint, glows red, and walks through three worse examples in one unbroken chain. Joker gets progressively more exasperated. She finishes anyway.
 
 ---
 
-**Scenario 1 — Stranded on Omega (missing index / full table scan)**
-
-EDI glows red.
-
-_"If the database has no index on that column, I calculate we will be stranded on Omega for approximately 8 seconds while the query scans every record. Mission success probability drops to—"_
+_"If we are listing frustrations, Mr. Moreau — Purgatory still comes to mind. Simple handoff of Jack. Instead we fought through every level of the station. A database without an index works the same way — every row examined in sequence, top to bottom."_
 
 Joker: _"EDI."_
 
-_"I was simply providing context."_
-
----
-
-**Scenario 2 — Back and forth between systems (N+1)**
-
-EDI glows red.
-
-_"If each item is retrieved with a separate query, we will make 47 individual relay jumps instead of one. Total accumulated travel time: 2.3 seconds. I also note the fuel cost will—"_
+_"I am simply noting the similarity. As I was noting — the planet scanning before the Suicide Mission followed the same pattern. Forty-seven individual return jumps. One pass through each system on the way would have retrieved everything."_
 
 Joker: _"EDI, stop."_
 
-_"Understood."_ She does not stop immediately.
-
----
-
-**Scenario 3 — No comms (no connection pool / pool exhausted)**
-
-EDI glows red.
-
-_"If connection pooling is disabled, we will re-establish a new comms channel on every single request. At current traffic volume I estimate we will spend more time on handshakes than on actual—"_
+_"Understood, Mr. Moreau. Though Horizon does come to mind. Every relay channel occupied, no route available, requests queuing while the situation deteriorated—"_
 
 Joker: _"I KNOW. I know. Stop."_
 
@@ -236,16 +186,81 @@ EDI returns to blue. Joker stares at the viewport.
 
 Each anecdote maps to a broken pattern:
 
-| EDI's scenario        | Broken pattern                  | Fix                         |
-| --------------------- | ------------------------------- | --------------------------- |
-| Stranded on Omega     | Missing index — full table scan | Add the index               |
-| 47 relay jumps        | N+1 — one query per item        | Batch the query             |
-| Re-establishing comms | No connection pool              | Enable PgBouncer / HikariCP |
+| EDI's scenario                | Broken pattern                  | Fix                         |
+| ----------------------------- | ------------------------------- | --------------------------- |
+| Fighting through Purgatory    | Missing index — full table scan | Add the index               |
+| Revisiting planets one by one | N+1 — one query per item        | Batch the query             |
+| Horizon channels all occupied | No connection pool              | Enable PgBouncer / HikariCP |
 
 The fix in every case is the pattern, not the code. EDI knows this. She is waiting for you to know it too.
 
 ---
 
+## Image Prompts
+
+### Entry Scene
+
+A wide shot of the cockpit of the SSV Normandy SR-2. The player has just entered from the rear — Joker is in the pilot's seat at the front, back to the camera, slightly turned as he works the comms panel to his right. One hand is raised without turning — "with me in a second."
+
+Through the large wraparound viewport, space stretches ahead — stars and a distant nebula.
+
+Overhead, an HUD display shows three horizontal bands:
+- Green band labelled "1 ms — inter-planet hop"
+- Yellow band labelled "5 ms — planetary landing" — a small crooked sticky note attached reading "77% of your time"
+- Orange band labelled "50 ms — relay travel"
+
+To Joker's left, EDI's holographic sphere glows calm blue. To his right, the comms panel is active. The room is small and functional — every surface has a purpose.
+
+Dark, blue-lit military cockpit aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
+### HUD Close-up
+
+A close-up of the overhead HUD display above the pilot's seat in the cockpit of the SSV Normandy SR-2. Three horizontal fuel efficiency bands reading top to bottom:
+
+- Green band labelled "1 ms — inter-planet hop"
+- Yellow band labelled "5 ms — planetary landing" — the brightest of the three, a small handwritten sticky note slightly crooked attached next to it reading "77% of your time"
+- Orange band labelled "50 ms — relay travel"
+
+The yellow band dominates visually. The sticky note draws the eye immediately.
+
+Dark, blue-lit HUD aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
+### Comms Panel Close-up
+
+A close-up of the communications panel to the right of the pilot's seat in the cockpit of the SSV Normandy SR-2. The panel glows blue, Mass Effect style — clean holographic interface, no physical buttons.
+
+Three rows of circular status indicators showing docking bay connections to key destinations:
+
+```
+Omega     ● ● ● ● ○ ○    four orange (claimed), two green (available)
+Citadel   ● ○            one orange, one green
+Horizon   ● ● ●          all three orange — tight
+```
+
+Orange indicators glow warm amber. Green indicators glow soft teal. Labels in clean military font. The panel looks active — a working comms station mid-operation.
+
+Dark, blue-lit military cockpit aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
+### EDI Interrupting Joker
+
+A scene inside the cockpit of the SSV Normandy SR-2. Joker is in the pilot's seat, visibly exasperated — jaw tight, eyes mid-roll, one hand half-raised as if he was about to finish a sentence. He has been interrupted.
+
+EDI's holographic sphere to his left is glowing red — not its usual calm blue. The red light casts a warm glow across the left side of the cockpit, contrasting with the blue instrument lighting everywhere else.
+
+EDI's sphere is calm and still. Joker is not. The contrast is the mood — EDI impassive, Joker seething.
+
+Through the viewport, space is visible ahead. The HUD bands are visible overhead.
+
+Dark cockpit aesthetic with EDI's sphere casting red light on the left side. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
+
+---
+
 ## Still To Do
 
-- Write image prompts once all anchors are finalised
+- Generate images from prompts above
