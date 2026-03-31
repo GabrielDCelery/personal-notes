@@ -15,7 +15,7 @@ Cockpit → Galaxy Map → Miranda's Office → Mess Hall → Mordin's Lab → M
 
 | Room                | Doc                              | File                      | Status                                      |
 | ------------------- | -------------------------------- | ------------------------- | ------------------------------------------- |
-| Cockpit (Joker)     | 02 - Anatomy of a Request        | cockpit-joker.md          | In progress — HUD + Joker anchors written, comms + EDI still to do |
+| Cockpit (Joker)     | 02 - Anatomy of a Request        | cockpit-joker.md          | Complete — all anchors written, image prompts still to do           |
 | Galaxy Map (CIC)    | 01 - Numbers and Quick Math      | galaxy-map-cic.md         | Complete — anchors + image prompts, no imgs |
 | Miranda's Office    | 06 - Scaling Decisions           | —                         | Not started                                 |
 | Mess Hall           | 04 - Caching                     | —                         | Not started                                 |
