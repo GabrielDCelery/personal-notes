@@ -13,20 +13,20 @@ Cockpit → Galaxy Map → Miranda's Office → Mess Hall → Mordin's Lab → M
 
 ## Room Status
 
-| Room                | Doc                              | File                      | Status                                      |
-| ------------------- | -------------------------------- | ------------------------- | ------------------------------------------- |
-| Cockpit (Joker)     | 02 - Anatomy of a Request        | cockpit-joker.md          | Complete — anchors + image prompts done, images not yet generated   |
-| Galaxy Map (CIC)    | 01 - Numbers and Quick Math      | galaxy-map-cic.md         | Complete — anchors + image prompts, no imgs |
-| Miranda's Office    | 06 - Scaling Decisions           | —                         | Not started                                 |
-| Mess Hall           | 04 - Caching                     | —                         | Not started                                 |
-| Mordin's Lab        | 03 - Databases                   | —                         | Not started                                 |
-| Med Bay (Chakwas)   | 09 - Logging and Observability   | —                         | Not started                                 |
-| AI Core (EDI)       | 10 - Auth Patterns               | —                         | Not started                                 |
-| Armoury (Jacob)     | 12 - Security                    | —                         | Not started                                 |
-| Garrus's Alcove     | 11 - Communication Protocols     | —                         | Anchors designed (see below), no file yet   |
-| Cargo Bay           | 05 - Queues and Async            | —                         | Not started                                 |
-| Engineering (Tali)  | 07 - Large Data and Migrations   | engineering-tali.md       | Placeholder — content listed, no anchors    |
-| Engine Room         | 08 - Cost and Storage Lifecycle  | —                         | Not started                                 |
+| Room               | Doc                             | File                | Status                                                            |
+| ------------------ | ------------------------------- | ------------------- | ----------------------------------------------------------------- |
+| Cockpit (Joker)    | 02 - Anatomy of a Request       | cockpit-joker.md    | Complete — anchors + image prompts done, images not yet generated |
+| Galaxy Map (CIC)   | 01 - Numbers and Quick Math     | galaxy-map-cic.md   | Complete — anchors + image prompts, no imgs                       |
+| Miranda's Office   | 06 - Scaling Decisions          | —                   | Not started                                                       |
+| Mess Hall          | 04 - Caching                    | —                   | Not started                                                       |
+| Mordin's Lab       | 03 - Databases                  | mordinlab.md        | Complete — anchors + image prompts done, images not yet generated |
+| Med Bay (Chakwas)  | 09 - Logging and Observability  | —                   | Not started                                                       |
+| AI Core (EDI)      | 10 - Auth Patterns              | —                   | Not started                                                       |
+| Armoury (Jacob)    | 12 - Security                   | —                   | Not started                                                       |
+| Garrus's Alcove    | 11 - Communication Protocols    | —                   | Anchors designed (see below), no file yet                         |
+| Cargo Bay          | 05 - Queues and Async           | —                   | Not started                                                       |
+| Engineering (Tali) | 07 - Large Data and Migrations  | engineering-tali.md | Placeholder — content listed, no anchors                          |
+| Engine Room        | 08 - Cost and Storage Lifecycle | —                   | Not started                                                       |
 
 ---
 
