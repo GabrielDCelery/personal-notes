@@ -15,7 +15,7 @@ You enter from the top. Galaxy map is centre. Kelly is immediately to your right
 ## Route Through the Room
 
 1. **Galaxy map** — classify the operation (which speed world?)
-2. **Comms terminal** (front left) — convert traffic numbers to RPS
+2. **Comms terminal** (front left) — abandoned, flooding with noise, tame it first, then convert traffic to RPS
 3. **Pressly's terminal** — identify the mission tier
 4. **Pressly's notepad** — check the ship's capacity limits
 5. **Kelly intercepts** — "did you decompose the load first?" right hand four fingers (×4 reads), left hand two fingers (×2 writes)
@@ -43,7 +43,11 @@ The 1,000× gap between each ring is implied by the increasing distance between 
 
 ## Anchor 2 — Comms Terminal (Time Conversion — Drop 5 Zeros)
 
-A passing stop — you glance at it on the way to Pressly, convert your raw traffic figure to RPS, arrive with the right number.
+You enter the CIC and the terminal is already going. Nobody is minding it. Raw request numbers scroll fast across the display — a flood of figures, no context, no order. Comms static underneath, just loud enough to be irritating. The galaxy map is right there but you can't focus while this is running.
+
+The time period selector is flashing. It wants you to act first.
+
+You set the time period. The flood slows. The static cuts. The room settles.
 
 **Three steps, left to right:**
 
@@ -54,7 +58,9 @@ month ÷30
 year  ÷300
 ```
 
-Holographic panel, Mass Effect style — glowing blue. You tap your time period, it pulses brighter, the others dim. The time period selector is always step one on the left, ×3 PEAK is always step three on the right. Day is highlighted by default — the anchor, the most common case.
+You tap your time period — it pulses brighter, the others dim. The flood of numbers collapses to a single day-equivalent figure. DROP 5 wipes the zeros. ×3 PEAK pulses once. One clean RPS sits large on the screen.
+
+The terminal goes quiet. You carry the number to Pressly.
 
 The sequence reads left to right: convert to requests per day, drop 5 zeros to get RPS (because ~100K seconds in a day), multiply by 3 for peak.
 
@@ -202,20 +208,20 @@ Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, ph
 
 ### Comms Terminal
 
-A close-up of a holographic communications terminal inside the CIC of the SSV Normandy SR-2. The terminal glows blue, Mass Effect style — no physical buttons, pure light.
+A wide shot of the CIC of the SSV Normandy SR-2, focus on the comms terminal to one side. The terminal is unattended — no crew member present. Its display is flooded with raw scrolling numbers, fast and chaotic, filling the screen with no structure. The time period selector on the left side of the terminal flashes urgently, demanding input.
 
-The display shows a three-step sequence reading left to right:
+The player's hand reaches toward the selector. The "day" row is about to be tapped.
+
+A second image shows the terminal after input: the flood has stopped. The display now shows the three-step sequence cleanly, left to right:
 
 ```
 hour  ×30
-day   ×1  ◄ (highlighted, pulsing)  →  [ DROP 5 ]  →  [ ×3 PEAK ]
+day   ×1  ◄ (highlighted, steady)  →  [ DROP 5 ]  →  [ ×3 PEAK ]
 month ÷30
 year  ÷300
 ```
 
-The time period selector is on the left — four rows, day highlighted brighter than the others. DROP 5 is in the centre in a bright panel. ×3 PEAK is on the right in a bright panel. The arrow flow left to right is clear.
-
-The terminal looks like a passing stop — functional, minimal, designed to be read in seconds.
+A single large RPS figure sits prominently on the right side of the screen — the result. The terminal is calm. The rest of the CIC is visible in the background, quiet.
 
 Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
 
