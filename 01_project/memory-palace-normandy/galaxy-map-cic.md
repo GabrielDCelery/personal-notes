@@ -18,7 +18,7 @@ You enter from the top. Galaxy map is centre. Kelly is immediately to your right
 2. **Comms terminal** (front left) — convert traffic numbers to RPS
 3. **Pressly's terminal** — identify the mission tier
 4. **Pressly's notepad** — check the ship's capacity limits
-5. **Kelly intercepts** — "did you decompose the load first?" four fingers, rock on
+5. **Kelly intercepts** — "did you decompose the load first?" right hand four fingers (×4 reads), left hand two fingers (×2 writes)
 6. **Walk to Kelly** — sticky note, "most systems are smaller than you think"
 
 It's a story, not a list. You're pulled through the room naturally.
@@ -165,11 +165,10 @@ That quiet "I told you so" smile. Soft exhale. Eyes flicking briefly to the stic
 
 ### Her Gestures
 
-- **Right hand** pointing at Pressly — _"he's got the ceilings, but did you give him the right numbers?"_
-- **Left hand — four fingers** — reads ×4 queries per request
-- **Left hand — rock on sign (index and pinky)** — writes ×2 (1 pre-check read + 1 write tx)
+- **Right hand — four fingers** — reads ×4 queries per request
+- **Left hand — two fingers** — writes ×2 (1 pre-check read + 1 write tx)
 
-One flowing motion: point at Pressly → turn to you → four fingers → rock on. Kelly's correction loop.
+Both hands up simultaneously. You see the multipliers at a glance before she says a word.
 
 ### Her Glance
 
@@ -261,7 +260,7 @@ On her monitor, a handwritten sticky note slightly crooked reads: **"most system
 
 Her expression is a soft, knowing smile — not happy, not angry. The "I told you so" exhale of someone who has had this conversation many times before. Her eyes flick briefly to the sticky note then back to you.
 
-Her right hand is pointing across the CIC towards Pressly's station. Her left hand is raised with two gestures visible — four fingers extended on one beat, then index finger and pinky only (the rock on sign) on the next, as if counting off two different things.
+Both hands are raised towards the player simultaneously. Her right hand shows four fingers clearly extended — reads ×4. Her left hand shows two fingers — writes ×2. The multipliers are visible at a glance, before she says a word.
 
 In the background, Pressly is hunched over his notepad at his station, oblivious to the conversation. The holographic galaxy map glows in the centre of the room.
 
