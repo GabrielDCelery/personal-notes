@@ -112,13 +112,15 @@ He gestures at the panel. The status board backs him up.
 ── CONNECTIONS ────────────────────────────
 Omega     ● ● ● ● ○ ○    4 in use / 2 available
 Citadel   ● ○            1 in use / 1 available
-Horizon   ● ● ●          all 3 in use — pool exhausted
+Horizon   ✕ ✕ ✕          system down
 ── IDENTITY ───────────────────────────────
 OAuth     ↑ external     relay trip per request
 JWT       ✓ local        EDI verifies onboard
 ```
 
-**Orange** = bay claimed, connection held open. **Green** = bay free, available. **All orange** = pool exhausted — new requests queue until a bay is released.
+**Orange** = bay claimed, connection held open. **Green** = bay free, available. **Red** = system down, no longer a destination.
+
+Joker can see the Horizon row every time he looks at the panel. He doesn't mention it.
 
 Omega looks healthy. Joker is almost comfortable. He starts explaining how he got here.
 
@@ -261,15 +263,15 @@ Two sections on the panel, separated by labelled dividers:
 ── CONNECTIONS ────────────────────────────
 Omega     ● ● ● ● ○ ○    4 connections in use / 2 available
 Citadel   ● ○            1 in use / 1 available
-Horizon   ● ● ●          all 3 in use — pool exhausted
+Horizon   ✕ ✕ ✕          system down
 ── IDENTITY ───────────────────────────────
 OAuth     ↑ external     relay trip per request
 JWT       ✓ local        EDI verifies onboard
 ```
 
-Orange indicators glow warm amber — connection claimed, held open via keep-alive. Green indicators glow soft teal — slot available. Horizon row all orange — pool exhausted, no slots free. The IDENTITY section shows OAuth with an upward arrow indicating it leaves the system boundary, JWT with a checkmark indicating local verification only.
+Orange indicators glow warm amber — connection claimed, held open via keep-alive. Green indicators glow soft teal — slot available. The Horizon row is all red with ✕ markers — system down, no longer a destination. The contrast between the active rows above and the dead Horizon row is immediate. The IDENTITY section shows OAuth with an upward arrow indicating it leaves the system boundary, JWT with a checkmark indicating local verification only.
 
-The panel looks active and mostly healthy — but the Horizon row is a warning sitting quietly in the middle of it.
+The panel looks active — but something on it is not.
 
 Dark, blue-lit military cockpit aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
 
