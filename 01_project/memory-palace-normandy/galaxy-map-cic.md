@@ -16,10 +16,11 @@ You enter from the top. Galaxy map is centre. Kelly is immediately to your right
 
 1. **Galaxy map** — classify the operation (which speed world?)
 2. **Comms terminal** (front left) — abandoned, flooding with noise, tame it first, then convert traffic to RPS
-3. **Pressly's terminal** — identify the mission tier
-4. **Pressly's notepad** — check the ship's capacity limits
-5. **Kelly intercepts** — "did you decompose the load first?" right hand four fingers (×4 reads), left hand two fingers (×2 writes)
-6. **Walk to Kelly** — sticky note, "most systems are smaller than you think"
+3. **Walk to Pressly** — brief exchange about Horizon, silence, the weight of the circled writes
+4. **Pressly's terminal** — mission tiers, identify where you are
+5. **Pressly's notepad** — capacity limits, the cross-reference
+6. **Kelly interjects** — reads the room, steps in before you fill the silence, redirects you to her
+7. **Kelly's station** — sticky note, hand gestures, objections as her own observations
 
 It's a story, not a list. You're pulled through the room naturally.
 
@@ -146,9 +147,17 @@ _Kelly's objection here: you looked at the terminal, saw "cache" further down th
 
 ### The Narrative
 
-Pressly is doing a pre-jump capacity check. The notepad is the ship's current limits. The terminal is the mission demand. He cross-references the two. The writes are circled — he's worried. We survived Horizon but only just. The next mission requires upgrades before we jump.
+You fixed the terminal. You have the number. You walk over to Pressly.
 
-You ask "can we handle the next mission?" Kelly jumps in before he answers.
+He doesn't look up. He's already cross-referencing the notepad against the terminal — the writes circled in red, the mission tier staring back at him. You mention Horizon. That you made it.
+
+He taps the circled row with one finger. Doesn't say anything for a moment.
+
+_"Barely."_
+
+Then he goes quiet. Back to the notepad. The silence sits there.
+
+You open your mouth. Kelly gets there first.
 
 _Kelly's objection here: you gave Pressly your RPS and forgot to decompose it. You handed him one number and he's been cross-referencing against write capacity — but your number was requests, not transactions. Writes cost more. You didn't account for that before arriving._
 
@@ -162,7 +171,11 @@ _Kelly's objection here: you gave Pressly your RPS and forgot to decompose it. Y
 
 ## Anchor 4 — Kelly's Station (Common Mistakes)
 
-Kelly is at her station, facing you, warm and engaged, mid-conversation.
+Pressly said "barely" and went quiet. You were about to say something. Kelly's voice comes across the room before you do — warm, easy, as if she just thought of something.
+
+_"Actually — while you're here. I wanted to run something by you."_
+
+It wasn't a question. She's already redirected you. You walk over. Pressly never has to deal with whatever you were about to say.
 
 ### The Sticky Note
 
@@ -175,14 +188,14 @@ On her monitor, handwritten, slightly crooked:
 
 ### Her Expression
 
-That quiet "I told you so" smile. Soft exhale. Eyes flicking briefly to the sticky note then back to you. Someone mapped their 100 RPS app to the wrong mission tier again.
+That quiet "I told you so" smile. Soft exhale. Eyes flicking briefly to the sticky note then back to you. She's not auditing you — she's thinking out loud. With you. The corrections land as observations, not verdicts. Pressly's competence is never in the room.
 
 ### Her Gestures
 
 - **Right hand — four fingers** — reads ×4 queries per request
 - **Left hand — two fingers** — writes ×2 (1 pre-check read + 1 write tx)
 
-Both hands up simultaneously. You see the multipliers at a glance before she says a word.
+Both hands up simultaneously. You see the multipliers at a glance before she says a word. She's not pointing at Pressly. She's just showing you something she noticed.
 
 ### Her Glance
 
@@ -190,7 +203,7 @@ Brief glance at the galaxy map — she doesn't say "you're optimising the wrong 
 
 ### The Narrative
 
-Kelly is calm, Kelly is always calm. But she's had this conversation before. The sticky note has been there since day one. She's not nagging — she's just waiting for you to notice it.
+Kelly saw the silence coming before you did. She pulled you out of it cleanly, brought you to her, and walked you through everything Pressly would have had to correct — without ever making it his problem. The sticky note, the gestures, the glance at the galaxy map. All her own observations. All landed gently. You leave knowing exactly what you got wrong and somehow still feeling fine about it.
 
 ---
 
@@ -268,17 +281,17 @@ Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, ph
 
 ### Kelly's Station
 
-A scene inside the CIC of the SSV Normandy SR-2. Yeoman Kelly Chambers is at her station on the right side of the CIC, turned towards the player, mid-conversation. Warm, engaged, slightly exasperated in the gentlest possible way.
+A scene inside the CIC of the SSV Normandy SR-2. Yeoman Kelly Chambers is at her station, turned towards the player, mid-conversation. Warm, engaged, completely at ease. She called you over and you came — that's the dynamic.
 
 On her monitor, a handwritten sticky note slightly crooked reads: **"most systems are smaller than you think"**
 
-Her expression is a soft, knowing smile — not happy, not angry. The "I told you so" exhale of someone who has had this conversation many times before. Her eyes flick briefly to the sticky note then back to you.
+Her expression is a soft knowing smile — not correcting, not judging. Thinking out loud. Her eyes flick briefly to the sticky note then back to you, as if she just remembered it was there.
 
-Both hands are raised towards the player simultaneously. Her right hand shows four fingers clearly extended — reads ×4. Her left hand shows two fingers — writes ×2. The multipliers are visible at a glance, before she says a word.
+Both hands are raised towards the player simultaneously. Her right hand shows four fingers clearly extended — reads ×4. Her left hand shows two fingers — writes ×2. The multipliers are visible at a glance, before she says a word. The gesture feels like sharing, not lecturing.
 
-In the background, Pressly is hunched over his notepad at his station, oblivious to the conversation. The holographic galaxy map glows in the centre of the room.
+In the background, Pressly is hunched over his notepad at his station, undisturbed. The holographic galaxy map glows in the centre of the room behind Kelly's shoulder.
 
-The overall mood is warm but pointed — Kelly is the most approachable person on the ship but she is absolutely right and she knows it.
+The overall mood is warm and precise — Kelly is the most socially intelligent person on the ship and she just quietly made sure nobody had an awkward moment.
 
 Dark, blue-lit military CIC aesthetic. Mass Effect 2 visual style. Cinematic, photorealistic lighting.
 
