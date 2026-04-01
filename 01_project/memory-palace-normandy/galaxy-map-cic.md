@@ -39,6 +39,8 @@ The 1,000× gap between each ring is implied by the increasing distance between 
 
 **Key insight:** any operation touching the network is in a different league. Rewriting in Go saves nothing if the DB is the bottleneck.
 
+_Kelly's objection here: you optimised the wrong layer. You spent a week on something that lives in the inner ring while your bottleneck is in the outer ring. The map told you. You didn't look._
+
 ---
 
 ## Anchor 2 — Comms Terminal (Time Conversion — Drop 5 Zeros)
@@ -61,6 +63,8 @@ year  ÷300
 You tap your time period — it pulses brighter, the others dim. The flood of numbers collapses to a single day-equivalent figure. DROP 5 wipes the zeros. ×3 PEAK pulses once. One clean RPS sits large on the screen.
 
 The terminal goes quiet. You carry the number to Pressly.
+
+_Kelly's objection here: you designed the system before you stopped at this terminal. You architected for a scale you hadn't calculated. The terminal was flooding the whole time and you walked straight past it._
 
 The sequence reads left to right: convert to requests per day, drop 5 zeros to get RPS (because ~100K seconds in a day), multiply by 3 for peak.
 
@@ -138,11 +142,15 @@ Two threads per line, separated by a period. Left is the scale answer. Right is 
 - **Suicide Mission** — everyone has a role. ask of every component: if this dies, does everything else die with it? the one you didn't prepare for is the one that kills you.
 - **The Reapers** — you didn't build for this, everything is custom. assume failure, test it deliberately.
 
+_Kelly's objection here: you looked at the terminal, saw "cache" further down the list, and started building Redis. You're at Horizon. The terminal told you exactly what Horizon needs — index and pool. You skipped the line. You built a Loyalty Mission solution for a Horizon problem and your tables still don't have indexes._
+
 ### The Narrative
 
 Pressly is doing a pre-jump capacity check. The notepad is the ship's current limits. The terminal is the mission demand. He cross-references the two. The writes are circled — he's worried. We survived Horizon but only just. The next mission requires upgrades before we jump.
 
 You ask "can we handle the next mission?" Kelly jumps in before he answers.
+
+_Kelly's objection here: you gave Pressly your RPS and forgot to decompose it. You handed him one number and he's been cross-referencing against write capacity — but your number was requests, not transactions. Writes cost more. You didn't account for that before arriving._
 
 ### Key Decisions
 
