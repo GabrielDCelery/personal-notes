@@ -105,12 +105,14 @@ No multipliers on the notepad — Pressly does that in his head. Kelly makes sur
 A mission briefing screen — incoming RPS mapped to Mass Effect missions, cross-referenced against the notepad:
 
 ```
-~100 RPS     → Illium              →
-~1,000 RPS   → Horizon             → bigger server, index, pool
-~10,000 RPS  → Loyalty Missions    → cache, replicas, monitoring
-~100,000 RPS → Suicide Mission     → distributed, CDN, sharding
-~1,000,000   → THE REAPERS         → DARK SPACE
+~100 RPS     → Illium              → ship it.           back it up.
+~1K RPS      → Horizon             → index, pool.       alerting.
+~10K RPS     → Loyalty Missions    → cache.             replica. watch it.
+~100K RPS    → Suicide Mission     → shard, CDN, queues. no single points of failure.
+~1M RPS      → THE REAPERS         → DARK SPACE
 ```
+
+Two threads per line, separated by a period. Left is the scale answer. Right is the resilience answer.
 
 **How the current ship maps against each mission:**
 
@@ -124,11 +126,11 @@ A mission briefing screen — incoming RPS mapped to Mass Effect missions, cross
 
 **Narrative arc:**
 
-- **Illium** — routine, nothing needed, Kelly has the answer
+- **Illium** — routine, nothing needed. back it up and go home.
 - **Horizon** — scrappy survival, patch what you have, no new components ← we are here
-- **Loyalty Missions** — invest in each component to unlock full potential, one by one
-- **Suicide Mission** — everyone has a role, single points of failure get people killed, full coordination
-- **The Reapers** — you didn't build for this, everything is custom, good luck
+- **Loyalty Missions** — invest in each component individually. make it faster _and_ make sure it survives. a component you didn't harden is Grunt without a loyalty mission.
+- **Suicide Mission** — everyone has a role. ask of every component: if this dies, does everything else die with it? the one you didn't prepare for is the one that kills you.
+- **The Reapers** — you didn't build for this, everything is custom. assume failure, test it deliberately.
 
 ### The Narrative
 
@@ -235,14 +237,14 @@ cache   |████████████████████ 100K
 
 The 1K writes row is circled in red pencil — emphasis that the ship is right at the limit. Below the chart, a small annotation reads "r6g.xlarge". The notepad looks worn, like he has referenced it many times.
 
-On the terminal screen in front of him, a mission briefing display shows a tiered list of mission threat levels with corresponding RPS values:
+On the terminal screen in front of him, a mission briefing display shows a tiered list of mission threat levels with corresponding RPS values. Each line has two parts — a scale answer and a resilience answer, separated by a period:
 
 ```
-~100 RPS     → Illium              →
-~1,000 RPS   → Horizon             → index, pool, bigger server
-~10,000 RPS  → Loyalty Missions    → cache, replicas, monitoring
-~100,000 RPS → Suicide Mission     → distributed, CDN, sharding
-~1,000,000   → THE REAPERS        → DARK SPACE
+~100 RPS     → Illium              → ship it.            back it up.
+~1K RPS      → Horizon             → index, pool.        alerting.
+~10K RPS     → Loyalty Missions    → cache.              replica. watch it.
+~100K RPS    → Suicide Mission     → shard, CDN, queues. no single points of failure.
+~1M RPS      → THE REAPERS         → DARK SPACE
 ```
 
 The screen has a faint red glow at the bottom tier. Pressly looks tense, cross-referencing the notepad against the terminal as if calculating whether the ship can handle the mission ahead.
