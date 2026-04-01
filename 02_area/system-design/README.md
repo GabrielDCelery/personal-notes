@@ -18,6 +18,7 @@ The series builds from raw numbers → understanding a single request → indivi
 | 08  | `08-cost-and-storage-lifecycle.md` | Draft  | Storage tier costs (RDS → S3 → Glacier, 115x spread), compute pricing models (on-demand, reserved, spot, Lambda), database archival (partition + Parquet + Athena), S3 lifecycle policies, Lambda vs containers crossover, worked journey pipeline cost comparison, common cost mistakes                 |
 | 10  | `10-auth-patterns.md`              | Done   | Stateless (JWT) vs stateful (session) decision, JWT anatomy and verification, the revocation problem, access + refresh token rotation, where to store tokens (httpOnly cookie vs memory vs localStorage), sessions with shared storage, OAuth/OIDC flows, microservice auth (verify once at the gateway) |
 | 11  | `11-communication-protocols.md`    | Done   | REST as default, short vs long polling (cost at scale), SSE (server push over HTTP, auto-reconnect), WebSockets (bidirectional, upgrade handshake), protocol comparison table, scaling persistent connections (sticky sessions, pub/sub backplane, dedicated gateway), decision framework                |
+| 12  | `12-security.md`                   | Done   | Defence in depth (8-layer model), rate limiting (token bucket vs sliding window, Redis counters), DDoS / WAF, network isolation (VPC subnets, security groups, zero trust), secrets management (inject at runtime, rotation, least privilege), encryption in transit and at rest (envelope encryption), input validation (SQLi, XSS, path traversal, SSRF) |
 
 ## How to use this
 
