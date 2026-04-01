@@ -31,19 +31,19 @@ EDI's holographic sphere is to Joker's left. Comms panel is to his right. You en
 
 ## The Entry Scene
 
-You walk into the cockpit. The mission is running long and Joker knows it. He doesn't turn around.
+You walk into the cockpit. Joker is already defensive before you open your mouth.
 
-_"Before you say anything — I know. We're behind schedule."_
+_"Before you say anything — the estimate was right. The relay hop, the handshake, the jump time. All correct."_
 
-Above his seat, the HUD is visible. Three bands. The yellow band has a sticky note taped slightly crooked: **"77% of your time."** The mission has been spending exactly that long on Omega. Joker has not looked at it.
+Above his seat, the HUD is visible. Three bands. The yellow band has a sticky note taped slightly crooked: **"77% of your time."** The mission is running long because Omega took longer than he planned for. The note is right above his head. He put it there himself after the last time.
 
 You point at it.
 
 A pause.
 
-_"...We were always going to land on Omega. That's the mission."_
+_"...The landing was always in the plan."_
 
-He shifts in the seat.
+He shifts in the seat. He knows.
 
 _"At least I didn't have to make a Citadel run first. Nav computer had the coordinates cached — we went in 2183, still in there. Some pilots forget that. Not me."_
 
@@ -93,6 +93,10 @@ That is the DNS hierarchy:
 _"We went in 2183. It's in the nav computer. I am not flying back to the Citadel to look up Omega's coordinates on every single request."_
 
 **DNS TTL = 0** — the nav computer is configured to forget coordinates after every jump. Joker would be making the Citadel trip every single request. _"Someone broke the nav computer."_ He didn't. The coordinates are cached. This is his alibi.
+
+And we're not leaving the system on every request either. Every external service call means a relay trip first — 50 ms before you've even jumped. Worth it when the mission requires it. Not worth it when you're making it on every request for something you could cache.
+
+_"We're not doing that. So."_
 
 He holds onto it. The yellow band is still right above him.
 
@@ -206,16 +210,6 @@ Each anecdote is an escalated version of something already in the room:
 | Horizon channels all occupied | No connection pool              | Comms panel, pool exhausted | Enable PgBouncer / HikariCP |
 
 The fix in every case is the pattern, not the code. EDI knows this. She is waiting for you to know it too.
-
-### Leaving the System (External API)
-
-One more cost Joker will mention before you leave — relay travel. Every time you call an external service mid-request, you fly to the relay first. That is 50 ms before you have even jumped.
-
-_"Was it worth the trip? Because you're making it every single request."_
-
-Not every external trip is avoidable — sometimes the mission requires it. The question is whether you are making the trip when you do not need to, or making it on every request when once would do.
-
-The relay band on the HUD is orange. It was always going to be the most expensive leg. The question is whether you had to fly it at all.
 
 ---
 
