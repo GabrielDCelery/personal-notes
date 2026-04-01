@@ -8,6 +8,18 @@ Maps to: **03-databases.md**
 
 Precision. Mordin knows the internals — not just what the limits are, but exactly why they exist and what controls them.
 
+## Narrative Ordering Principle
+
+Anchors ordered by severity — most catastrophic and irreversible first, most mechanical and fixable last. Mordin opens with controlled urgency and relaxes into precision as the topics become recoverable.
+
+1. **Wrong database pick** — irreversible, months to undo, driven by asking the wrong question. MongoDB because migrations are annoying. DynamoDB because it scales. The embed/reference trap. The access pattern lock-in. This is the one that keeps him up at night.
+2. **Missing index** — weeks of mystery slow queries, invisible until production, fixable in hours once found
+3. **No connection pool** — Postgres forking 500 processes, 5GB gone before a query runs, fixable but only after something breaks
+4. **Write amplification from indexes** — you added indexes to fix reads and made writes worse, schema-level decision with real cost
+5. **RAM vs disk** — wrong instance type, you're running to the filing room on every query until you fix it
+
+The wrong database is Mordin's genophage — a decision made early that determines everything that follows. He'd rather be the one who makes sure you understand it correctly than leave it to someone who might get it wrong.
+
 ## Room Layout
 
 ```
@@ -40,9 +52,99 @@ _"WAL first. Durability — survives a crash. Then indexes — all of them, ever
 
 He registers your presence without fully turning.
 
-_"You're here about the database. Good. Most people skip the mechanism, go straight to 'which database is best.' Wrong question. Come in."_
+_"Yes? How can I help?"_
+
+_"Wanted to talk about our next mission."_
+
+He turns. Looks at you properly.
+
+_"Ah. Next mission. Yes. Horizon — barely survived that one. Indexes helped. Connection pooling helped. Vertical scale helped. Correct order, good instincts. No more obvious fixes left now. Someone suggested MongoDB? DynamoDB perhaps? Scales well, apparently."_
+
+A beat. Not unkind. He glances around the lab.
+
+_"Had a clinic on Omega. No funding. Mercenaries. Constant interruptions. Solved a viral outbreak with what was on the bench. Didn't need better equipment. Needed to understand the problem."_
+
+He looks back at you.
+
+_"Most people skip the mechanism. Go straight to 'which database is best.' Wrong question. You have Postgres. You have indexes. You have a connection pool. You don't fully understand any of them yet. Come in."_
 
 → he gestures toward the workstation
+
+---
+
+## The Three Samples — Database Decision Framework
+
+Three specimen containers on the bench. Mordin picks them up one by one during the entry conversation.
+
+---
+
+### Colonist Sample (MongoDB)
+
+Mordin picks it up, examines it.
+
+_"Remarkable species. Humans. Adaptable. Show up everywhere, adjust to anything. Alliance expanded faster than anyone predicted. No fixed structure — that is the strength. Genuine strength."_
+
+He sets it down slightly, continues.
+
+_"Also makes the records a nightmare. Collecting medical data for the investigation — had to visit seven colony administrations. Seven. Varren samples, one landing, everything I needed. Colonists — relay trip after relay trip. Different formats, different systems, incomplete cross-references."_
+
+He picks it back up.
+
+_"Someone embedded colony status directly into the medical records. Convenient at the time. Horizon happened. Status changed. Now half the records say active colony. Can't trust the location data. Should have referenced the colony independently — one update, consistent everywhere. Instead — hunting through records one by one."_
+
+Brief glance at the varren sample.
+
+_"Cross-referencing medical history with location data. Simple question, should be a landing — five milliseconds. Wrong tool for it. Fifty milliseconds minimum. Hundreds at scale. Unacceptable at Horizon. Worse beyond."_
+
+**What the colonist sample encodes:**
+
+- Flexible schema — humans are adaptive, no fixed structure, Alliance expanded fast. Right tool when data is genuinely document-shaped and naturally distributed
+- Auto-sharding — colonists live across different planets, data naturally distributes the same way
+- Embed vs reference trap — embedded colony status, Horizon happened, data stale, hunting through records one by one
+- Slow JOINs — cross-referencing is a relay trip not a landing. 50ms minimum, hundreds at scale
+
+---
+
+### Collector Sample (DynamoDB)
+
+Mordin picks it up. A brief pause — different energy than the colonist sample. More careful.
+
+_"Collectors. Protheans once. Reapers engineered out everything except the function they needed. Extraordinarily efficient. Single purpose. No waste."_
+
+He sets it under the analysis equipment.
+
+_"Collecting samples — one mission, straight to what I needed. No relay trips, no colony administrations, no cross-referencing. O(1). Every time. Regardless of how many samples exist."_
+
+He examines the readout.
+
+_"Knew my access patterns going in. Always querying by the same key. Perfect tool for that. Then they adapted. New weapon variant, different mechanism. These samples answer the old questions perfectly."_
+
+He sets it down.
+
+_"New questions — useless. Had to go back out. Dangerous. Time consuming. Months."_
+
+A beat.
+
+_"Tried working with the old samples anyway. Application layer — extract what I can, combine it manually in my analysis. Works. Barely. Every researcher who needs the same combined data repeats the same process. At scale — forty-seven planet scans."_
+
+_"Has workarounds. Access patterns are fixed. Workarounds exist. Still limited."_
+
+Brief glance at the varren sample.
+
+**What the Collector sample encodes:**
+
+- O(1) lookups regardless of scale — one mission, straight to what you need, no cross-referencing
+- Zero ops overhead — scales to zero, perfect for Lambda/serverless, no connection limits
+- Access pattern lock-in — Collectors adapted, old samples useless, months to collect new ones. Changing access patterns means redesigning the table
+- Application layer joins are N+1 — manually combining extractions, logic repeated everywhere, breaks at scale
+- No cheap transactions — cross-referencing multiple samples simultaneously requires special handling, expensive, limited scope
+- GSIs exist but limited — workarounds for anticipated questions, duplicates the entire dataset, still can't ask something you didn't prepare for
+
+---
+
+### Varren Sample (Postgres)
+
+_To be written_
 
 ---
 
