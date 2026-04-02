@@ -362,35 +362,17 @@ Side note in smaller text: _"Vertical scale: 10 min from 5K to 50K reads/sec. Sh
 
 ---
 
-## Anchor 6 — Back Corner: Lab Assistants (Connection Pooling + Postgres Internals)
+## Anchor 6 — Back Corner: The Accumulating Shelf (MVCC)
 
-The back corner of the lab. Two things to look at.
-
-### The Doorway Crowd (Process-per-connection)
-
-A crowd of lab assistants standing in the doorway. Each one has a badge: **10 MB**. That's their footprint just for existing — before any work begins.
-
-- **Postgres:** one process per connection. 500 connections = 500 assistants in the doorway = 5 GB consumed before a single query runs.
-- **MySQL:** one assistant running between stations. Far lighter. Not the same model.
-
-**Pool sizing note** pinned to the corner cabinet:
-`connections ≈ (2 × CPU cores) + disks`
-For a 4-core instance: ~10 connections is right.
-
-Mordin: _"Process-per-connection. Postgres. One process, ten megabytes, one connection. Not optional knowledge. PgBouncer is not an optimisation — it is mandatory at any meaningful scale."_
-
-### The PgBouncer Supervisor
-
-A supervisor figure standing at the door. Outside, 1,000 callers are waiting. The supervisor takes requests and hands them to the 20 real assistants behind him. The callers never know they're sharing. The real assistants stay in the lab — they are never dismissed and re-hired.
-
-New connection cost without pool: **3–13 ms** (TCP handshake + TLS + auth + Postgres forking a process).
-Connection from pool: **~0.05 ms** (grab the handle, query, return it).
-
-### The Accumulating Shelf (MVCC)
-
-On the back shelf: a stack of old experiment logs. Not cleaned up. Each one is a row version superseded by an update — kept alive by MVCC until the vacuum process runs. Heavy write load fills this shelf fast.
+On the back shelf: a stack of old experiment logs. Not cleaned up. Each one is a row version superseded by an update — kept alive by MVCC until the vacuum process runs. Mordin's re-seeding workload fills this shelf fast.
 
 MVCC rule: readers never block writers. Old row versions accumulate as the cost. Vacuum cleans them. If vacuum can't keep up, dead tuples pile up and slow everything down.
+
+Mordin glances at the shelf.
+
+_"Every update leaves the old version behind. Readers need it — they might still be looking at it. Vacuum clears what's no longer needed. Heavy writes, constant re-seeding — vacuum struggles to keep pace. The shelf gets full. Performance degrades."_
+
+_"Not a connection problem. Not an index problem. The database cleaning up after itself, failing to keep up with the work."_
 
 **Read replica tube** in the wall: sends copies to the secondary lab. The secondary lab receives them **10–100 ms** later.
 

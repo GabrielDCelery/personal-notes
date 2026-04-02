@@ -113,6 +113,7 @@ He gestures at the panel. The status board backs him up.
 ### Docking Bay Status (Connection Pool)
 
 ```
+🟢 SYN → SYN-ACK → ACK                    🟠 KEEP-ALIVE
 ── CONNECTIONS ────────────────────────────
 Omega     ● ● ● ● ○ ○    4 in use / 2 available
 Citadel   ● ○            1 in use / 1 available
@@ -255,7 +256,15 @@ Dark, blue-lit HUD aesthetic. Mass Effect 2 visual style. Cinematic, photorealis
 
 A close-up of the communications panel to the right of the pilot's seat in the cockpit of the SSV Normandy SR-2. The panel glows blue, Mass Effect style — clean holographic interface, no physical buttons.
 
-Two sections on the panel, separated by labelled dividers:
+At the top of the panel, a header line in two colours:
+
+```
+🟢 SYN → SYN-ACK → ACK                    🟠 KEEP-ALIVE
+```
+
+Green for the handshake sequence, orange for keep-alive — the cost and the answer to it, side by side.
+
+Below, two sections on the panel, separated by labelled dividers:
 
 ```
 ── CONNECTIONS ────────────────────────────
