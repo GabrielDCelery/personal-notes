@@ -144,7 +144,38 @@ Brief glance at the varren sample.
 
 ### Varren Sample (Postgres)
 
-_To be written_
+Mordin picks up the last container. Different energy — no pause, no caution. Familiar.
+
+_"Varren. Originally from Tuchanka. Followed the krogan everywhere — every colony, every warzone, every station. Not because anyone brought them deliberately. Because they adapt. Pack hunters when prey is available. Scavengers when outnumbered. Omnivores. Work in almost any environment."_
+
+He sets it under the analysis equipment.
+
+_"STG designated them species 408. Studied them for potential weaponisation. Consensus among most xenobiologists: pest, nuisance, manage and contain. STG conclusion: underestimated. More capable than reputation suggested. Didn't need to be exotic to be effective."_
+
+He glances at the collector sample, then back.
+
+_"Krogan have kept varren for millennia. Fight them for territory. Then tame them. Keep them as companions, war beasts. Love-hate. Understandable. They need management — they make a mess, you clean it up. Don't clean up, the mess accumulates. But they work. In almost any environment, against almost any problem. You don't need to know exactly what you're hunting before you bring one."_
+
+A brief pause.
+
+_"Pack hunters. Multiple varren pursuing different prey simultaneously — they don't get in each other's way. Readers and writers, same table, same moment. Never blocking each other. That is MVCC. Cost: dead tissue accumulates after each kill. Vacuum process cleans it. Heavy hunting — vacuum struggles to keep up. Performance degrades."_
+
+He sets the container down next to the other two.
+
+_"One limitation. Pack gets too large — no coordination mechanism. Each varren operates independently. You cannot direct five hundred simultaneously across different territories from one position. No built-in sharding. Above fifty thousand writes per second on a single node, vacuum overhead becomes the ceiling."_
+
+He looks at all three containers.
+
+_"Wrong question: which database is best. Right question: what are your access patterns. Don't know yet? Use the varren. It can hunt almost anything. Optimise when the patterns emerge."_
+
+**What the varren sample encodes:**
+
+- Adaptability — handles CRUD, analytics, JSONB, full-text, CTEs, window functions. Works in almost any environment
+- Default choice — when access patterns are unknown, Postgres first. Optimise later
+- Underestimated — species 408. Most engineers reach for exotic tools before exhausting what Postgres can do
+- MVCC — pack hunters don't block each other. Readers never block writers. Cost: dead tuples accumulate, vacuum cleans them
+- Needs management — PgBouncer mandatory, vacuum overhead, process-per-connection. Love-hate. It rewards the care
+- Hard ceiling — no built-in sharding, struggles above ~50k writes/sec on one node. Pack gets too large to coordinate
 
 ---
 
