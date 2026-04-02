@@ -140,6 +140,10 @@ One bay is now yours. The cost is the distance — same DC = 1 ms. Cross-ocean =
 
 **TLS** = transmitting IFF codes once the bay is claimed. Security clearance before docking is authorised. You are who you say you are, the channel is encrypted.
 
+**The cost:** claiming the bay is one round trip. Transmitting IFF codes is another. TLS 1.3 adds one RTT on top of TCP. TLS 1.2 adds two. Before a single byte of mission data moves, you've paid 2–3 full round trips of pure handshake. Cross-ocean, that's 300–900 ms before anything happens. Nothing Joker can do about the distance. He can avoid doing it more than once.
+
+**TLS session resumption** — after the first full IFF exchange, the ship holds a session ticket: a pre-cleared transponder code. Next time Joker opens a channel to the same destination, he presents the ticket and most of the verification is skipped — one round trip instead of two or three. Like DNS, the ticket expires. But while it's valid, you don't repeat the full clearance process. This is the second caching win alongside keep-alive: keep-alive means you don't re-claim the bay, session resumption means you don't re-run the full IFF exchange if you do.
+
 **Keep-alive** — once Joker has a bay, he holds it. He does not release it after every visit and re-claim it next time. The bay stays reserved so he can go straight back to Omega without a new handshake.
 
 **No pool at all** = Joker releases his bay after every landing and re-claims it next time. New handshake, new IFF exchange, every single visit. 5–20 ms overhead each time, for nothing.
