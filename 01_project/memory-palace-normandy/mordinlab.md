@@ -193,10 +193,13 @@ _"Knowing the varren can hunt anything is not the same as knowing where to point
 
 ## Anchor 1 — Central Workstation: The Two Trays (Reads vs Writes)
 
-Two trays side by side on the workstation. Left and right. The asymmetry is obvious at a glance.
+Mordin turns from the documents. Gestures at the two trays on the workstation.
 
-**Left tray — READ:**
-One sample container. Pick it up. Return it. Done.
+_"You saw all of that. Now you can see why."_
+
+Two trays side by side. The asymmetry is obvious at a glance.
+
+**Left tray — READ:** One sample container. Pick it up. Return it. Done.
 
 **Right tray — WRITE:** An assembly line. Labeled stations, left to right:
 
@@ -204,15 +207,15 @@ One sample container. Pick it up. Return it. Done.
 [WAL recorder] → [Index × 5] → [FK validator] → [Lock/release] → [Replication tube]
 ```
 
-1. WAL recorder — crash-proof copy, written first every time
-2. Index updater × 5 — one tray per index on the table (five indexes = five updates)
-3. FK validator — must do reads to check foreign key integrity
+1. WAL recorder — crash-proof copy, written first every time, always disk
+2. Index updater × 5 — one station per index on the table (nine indexes = nine updates)
+3. FK validator — reads inside the write, warm cache fast, cold cache hits disk again
 4. Lock mechanism — acquire before work, release after
 5. Replication tube — sends copy to secondary lab (if synchronous: wait for signal back)
 
 The right tray is crowded. The left tray has one item.
 
-Mordin: _"Table with ten indexes. Read: one step. Write: twelve steps. Same table. Same data. Different direction. More indexes means wider gap — not fixed ratio. Schema determines everything."_
+_"Same table. Same data. Different direction. More indexes — wider the gap. Not a fixed ratio. Schema determines everything."_
 
 ---
 
@@ -233,7 +236,7 @@ Mordin: _"One question. Is the working set on the bench or down the hall? Everyt
 
 ---
 
-## Anchor 3 — Research Index: Schema and Indexes
+## Anchor 3 — Research Index: Schema, Indexes and the Write Path
 
 The stack of documents on the workstation. Migration notes, query logs, schema diagrams. Several pages have columns crossed out and redrawn. One page has a single word underlined three times: **ORDER.**
 
@@ -247,21 +250,19 @@ _"First query across the full dataset. Filtering by colony of origin. One millio
 
 He taps the schema diagram.
 
-_"Missing index. Added it. Query: eight milliseconds. Correct. Then I added indexes for every query pattern I could anticipate. Every species combination. Every date range. Every symptom cluster."_
+_"Missing index. Added it. Query: eight milliseconds. Correct. Then I added indexes for every query pattern I could anticipate. Every species combination. Every date range. Every symptom cluster. Nine indexes total."_
 
-He picks up the query log again.
+He picks up the query log.
 
-_"Writes slowed. Every new record — collector weapon effect data, new sample, new observation — touching nine indexes on insertion. Migration, rebuild, refill. Three days. Expensive."_
+_"Then I re-seeded. New collector weapon data — bulk insert, one million records. Took three hours. Previous seed: forty minutes."_
 
 He sets it down.
 
-_"Then the composite index problem. Indexed by species first, then colony. Most queries filter by species — correct decision. Then I needed colony alone. Index useless. Wrong column order. Rebuild again."_
+_"Knew why immediately. Every write to this table — every single insert — hits the WAL first. Disk. Always. Crash survival, non-negotiable. Then updates every index on the table. Nine indexes: nine separate write operations per record. Then validates FK constraints — colony of origin references the colonies table, species references the species table. Reads inside every write. If those tables aren't in memory: disk again. Then locks, acquire and release. One million records. Every step, every time."_
 
-He pulls out a single laminated card. Clean, unlike everything else on the workstation.
+He pulls out the laminated card.
 
-_"Made the card after the third rebuild. Stops me doing it again."_
-
-The card reads:
+_"Made this after the third rebuild."_
 
 ```
 Query by species + colony      →  index (species, colony)   ✓
@@ -269,23 +270,17 @@ Query by species alone         →  index (species, colony)   ✓  leftmost pref
 Query by colony alone          →  index (species, colony)   ✗  must rebuild
 ```
 
-_"Leftmost prefix rule. The index is sorted left to right. You must start from the left column. Querying the middle or right column alone — full scan."_
+_"Composite index column order is fixed. Sorted left to right. Must start from the left column. Had it backwards twice. Two rebuilds before I made the card."_
 
-He gestures at the schema diagram.
+He sets it down and gestures at the schema.
 
-_"Two decisions that determine everything. First: what is a column, what stays JSONB."_
+_"Two decisions that determine everything. What is a column, what stays JSONB. Symptom presentation — varies per species, changes as I learn more about the weapon. JSONB. Colony of origin, species, collection date — queried constantly, always the same shape. Columns. Indexable."_
 
-He points to two sections of the schema.
+_"Wrong choice either direction: JSONB on something you filter constantly — slow. Column on something with variable structure — migration every time the weapon evolves."_
 
-_"Symptom presentation — varies per species, changes as I learn more about the weapon, unpredictable structure. JSONB. Flexible, stores anything, schema can evolve. Not efficiently queryable — acceptable, I do not filter by symptom in the main queries."_
+He looks at the query logs.
 
-_"Colony of origin, species, collection date — queried constantly, always the same shape, must be fast. Columns. Indexable. Not JSONB."_
-
-_"Second decision: which columns to index, in which order, how many. Index too few — slow reads, queries hang. Index too many — slow writes, rebuild cycles, storage cost."_
-
-He taps the annotation in red at the bottom of the schema.
-
-_"Write-heavy tables: as few indexes as possible. Read-heavy: more acceptable. This table receives new records constantly. Every index is a cost on every insert."_
+_"Trimmed to four indexes. Re-seed: fifty-five minutes. Queries still fast. Acceptable balance. Write-heavy workload — I am always inserting. Every index is a tax on every write. The missing index was a problem. Nine indexes was a worse one."_
 
 He sets the documents down.
 
@@ -294,18 +289,12 @@ _"The varren can handle it. That was never the question. The question is what yo
 **What this anchor encodes:**
 
 - Missing index turns milliseconds into seconds — invisible until you run the query at scale
-- Over-indexing slows writes — every index is maintained on every insert
-- Schema decision: JSONB for variable/evolving structure, columns for anything you filter or sort by
+- Every write hits WAL first — disk, always, non-negotiable
+- Every index is an extra write operation per insert — nine indexes, nine extra writes per record
+- FK constraints are reads inside writes — warm cache fast, cold cache hits disk
 - Composite index column order is fixed — leftmost prefix rule, wrong order means rebuild
-- The cost of getting it wrong: migration, rebuild, refill cycles are expensive
-- Balance: index what you query, nothing more
-
-Below the documents: a laminated B-tree card:
-
-```
-Without index, 1 billion rows:   scan all 1,000,000,000
-B-tree index, 1 billion rows:    30 comparisons
-```
+- JSONB vs column: variable structure vs queryable shape
+- Write-heavy workloads feel index cost hardest — balance is everything
 
 Pinned to the edge of the workstation: the index types table, annotated in Mordin's handwriting:
 
