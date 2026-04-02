@@ -22,7 +22,6 @@ The wrong database is Mordin's genophage — a decision made early that determin
 ## Room Layout
 
 ```
-                    [BACK WALL DISPLAY — Which Database]
 [Whiteboard]   [Central Workstation — Mordin]         [Back Corner]
 [Scaling]      [Samples] [Documents] [Two Trays]      [MVCC shelf]
                             [ENTER]
@@ -35,9 +34,8 @@ Compact lab. You enter from the lower deck corridor. Mordin is immediately visib
 1. **Enter** — Mordin mid-monologue, running through the write path out loud
 2. **Central workstation — samples** — which database, why Postgres, the migration decision
 3. **Central workstation — documents + trays** — indexes, write path, RAM vs disk
-4. **Back wall display** — decision framework summary
-5. **Whiteboard** — scaling in order, numbered, strict
-6. **Back corner** — MVCC shelf, dead tuples, vacuum overhead
+4. **Whiteboard** — scaling in order, numbered, strict
+5. **Back corner** — MVCC shelf, dead tuples, vacuum overhead
 
 ---
 
@@ -216,23 +214,6 @@ _"Same table. Same data. Different direction. More indexes — wider the gap. No
 
 ---
 
-## Anchor 2 — Side Bench: Sample Storage (RAM vs Disk)
-
-Three locations in the lab. Three latencies. You can see all three from where you're standing.
-
-| Location                      | What it is | Latency  |
-| ----------------------------- | ---------- | -------- |
-| Bench surface                 | RAM        | ~0.01 ms |
-| Wall cabinet (across the lab) | SSD        | ~0.1 ms  |
-| Filing room down the hall     | HDD        | ~5 ms    |
-
-A label is stuck on the bench surface: `r family (memory-optimised)`.
-A crossed-out label on the shelf above: `m family (compute-optimised)` — wrong choice for a database.
-
-Mordin: _"One question. Is the working set on the bench or down the hall? Everything else follows. If it fits in RAM, reads are fast. If it doesn't, every read might leave the lab entirely. Get bench space. CPU speed is irrelevant if you're running to the filing room on every query."_
-
----
-
 ## Anchor 3 — Research Index: Schema, Indexes and the Write Path
 
 The stack of documents on the workstation. Migration notes, query logs, schema diagrams. Several pages have columns crossed out and redrawn. One page has a single word underlined three times: **ORDER.**
@@ -307,55 +288,69 @@ Mordin's annotation at the bottom: _"Don't index everything. Write-heavy tables:
 
 ---
 
-## Anchor 4 — Back Wall Display: Which Database
-
-Large screen at the back of the lab. Mordin's decision framework — not preference, trade-offs. Three columns.
-
-```
-                 Query flexibility ──────────────────►
-                 ▲
-Ops overhead     DynamoDB        MongoDB          Postgres
-◄──────────────  zero ops,       flexible schema  most flexible
-                 limited         good scaling     most ops overhead
-                 queries
-```
-
-| Workload                             | Use          | Why                                        |
-| ------------------------------------ | ------------ | ------------------------------------------ |
-| Generic web app (CRUD, JOINs)        | **Postgres** | Most flexible, handles everything          |
-| Key-value at massive scale           | DynamoDB     | Zero ops, single-digit ms at any scale     |
-| Schema varies per record             | MongoDB      | Document model, no migrations              |
-| High write throughput, need to shard | Mongo/Dynamo | Both shard natively, Postgres doesn't      |
-| Complex analytics                    | **Postgres** | Best query planner, CTEs, window functions |
-| Serverless (Lambda)                  | DynamoDB     | No connection limits, scales to zero       |
-| You don't know yet                   | **Postgres** | It can do everything                       |
-
-A large label across the top of the screen, Mordin's annotation:
-
-**"Wrong question: which is best. Right question: what are your access patterns."**
-
-Under Postgres: _"You don't know yet? Use Postgres. Optimise when patterns emerge."_
-
----
-
-## Anchor 5 — Whiteboard: Scaling in Order
+## Anchor 4 — Whiteboard: Scaling in Order
 
 Side wall. Mordin's diagnostic sequence. Numbered. Strict. He has underlined "IN ORDER" twice.
 
-```
-Is the database slow?
+He gestures at the terminals scattered around the lab — ingestion terminal, analysis terminal, cross-reference terminal. All connected to the same Postgres instance in the corner.
 
-  1. Slow queries        → EXPLAIN ANALYZE, add indexes, fix N+1   (hours, free)
-  2. Too many conns      → PgBouncer                               (hours, free)
-  3. CPU/memory maxed    → bigger instance                         (minutes, $$)
-  4. Read QPS too high   → read replicas → caching (Redis)         (days, $$$)
-  5. Write QPS too high  → reduce indexes, batch → shard           (weeks, hard)
+_"Not a checklist. A chain. Each fix revealed the next problem hiding underneath."_
+
+He taps step 1.
+
+_"Query hung. Four seconds. Added the index — eight milliseconds. Good. Then added indexes for every query pattern I could anticipate. Thorough. Covered everything."_
+
+Step 2.
+
+_"Re-seeded. Three hours. Previous seed: forty minutes. Nine indexes — nine write operations per record, one million records. Trimmed to four. Re-seed: fifty-five minutes. Acceptable."_
+
+_"But trimming the indexes made some reads slower. Columns I removed indexes from — back to full scans. Analysis queries taking longer than before."_
+
+Step 3.
+
+_"Tried to compensate. Ran more concurrent analysis — split the work across multiple terminals, run queries in parallel, finish faster. Three terminals hitting the same instance simultaneously. Connections exhausted. Postgres forking a process for each one, memory gone before queries ran. PgBouncer. Fixed in an afternoon."_
+
+_"Connections fixed. But now three terminals querying hard against one instance. That exposed the next problem."_
+
+Step 4.
+
+_"Reads still slow. Not the indexes. Not the connections. Wrong instance type — compute-optimised, fast CPU, small memory. Working set didn't fit in RAM. Every read running down the hall to the filing room. Moved to memory-optimised. Working set on the bench. Reads fast."_
+
+_"With reads fast, analysis became aggressive. Full cross-referencing runs, aggregate queries across the entire dataset. Ingestion and analysis competing for the same node — writes fighting reads for CPU and I/O."_
+
+Step 5.
+
+_"Added a read replica. Analysis routed to the replica, ingestion stays on the primary. Separated the workloads."_
+
+_"Could have tried caching. Didn't. Cache works when the same question gets asked repeatedly — store the answer, serve it from memory. My analysis queries are never the same twice. Different filters, different cross-references, different date ranges. Cache hit rate would be near zero. Redis would add complexity with no benefit. Read replica was the right call — not repeated questions, just too many different questions hitting the same node."_
+
+A pause.
+
+_"Then nearly made a critical error. Cross-referenced two findings — got a contradiction. Spent two hours checking methodology. The replica was ten seconds behind. Stale data. Two hours wasted."_
+
+_"Rule: replica for load. Primary for truth. Anything where the result matters immediately — primary only."_
+
+He looks at step 6.
+
+_"Data volume — not there yet. Partitioning cold data by date when I am. Already planned."_
+
+He steps back.
+
+_"Indexes hid the write cost. Trimming indexes made reads slower. Slower reads pushed me to more concurrent terminals. More terminals exhausted connections. Fixing connections revealed the instance type. Fixing the instance revealed the competing workloads. Separating workloads revealed the replication lag."_
+
+_"You cannot skip to step five. Anyone who proposes sharding before indexing has not done the work."_
+
+```
+  1. Slow queries        → EXPLAIN ANALYZE, add indexes            (hours, free)
+  2. Write QPS too high  → reduce indexes, batch writes            (hours, free)
+  3. Too many conns      → PgBouncer                               (hours, free)
+  4. CPU/memory maxed    → memory-optimised instance               (minutes, $$)
+  5. Read QPS too high   → read replicas (unique queries)          (days, $$$)
+                           Redis (repeated queries)
   6. Data too large      → partition tables, archive cold data     (days)
 ```
 
-Written at the bottom in red: **"SKIP NOTHING. Each step is ~10× harder than the last."**
-
-Side note in smaller text: _"Vertical scale: 10 min from 5K to 50K reads/sec. Sharding: weeks. Run the numbers first. Sharding is a last resort."_
+Written at the bottom in red: **"SKIP NOTHING. Each fix introduces the next problem."**
 
 ---
 
