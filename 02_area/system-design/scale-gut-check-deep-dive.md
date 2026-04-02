@@ -41,26 +41,28 @@ A growing startup, a popular internal tool, a mid-size SaaS.
 
 ---
 
-## ~10,000 RPS — DB read load
+## ~10,000 RPS — Helpers for each pressure point
 
 A well-known consumer app, a high-traffic media site, a popular API.
 
 - **What this is:** ~864M requests/day. You're a real product.
-- **The dominant bottleneck:** Postgres reads cap around 10K/sec on a single instance. You're approaching that ceiling.
-- **The answer:** caching. Redis/Memcached absorbs hot reads (user sessions, product listings, popular content) without touching Postgres at all. A good cache hit rate (60–80%) means your DB might only see 2–4K actual queries/sec — well within a single instance's capacity.
+- **The fundamental architecture doesn't change shape.** You still have one app, one DB, one cache layer. But vertical scaling has stopped being the answer — you can't just provision a bigger server. Instead you introduce helpers for each individual pressure point.
+- **Redis/Memcached** absorbs hot reads (user sessions, product listings, popular content) without touching Postgres at all. A good cache hit rate (60–80%) means your DB might only see 2–4K actual queries/sec — well within a single instance's capacity.
+- **CDN** absorbs static load (JS, CSS, images) before it hits origin at all. Not the dominant bottleneck answer, but it fits the tier: offload the pressure before it reaches the component that can't handle it.
+- **A single well-tuned server can handle 10K RPS for most workloads.** You don't add more app servers because one can't cope — you add them because you need zero-downtime deploys and can't afford a single hardware failure to take you down. That's a reliability decision, not a scale decision.
+- **Resilience:** this is where you harden each component individually so it survives what's coming next. A read replica gives you a hot standby — if the primary dies, you promote and you're back online in seconds. Monitoring gives visibility into which component is struggling before it becomes an outage. Circuit breakers on external API calls mean a downstream failure doesn't cascade into your failure.
 
-**A single well-tuned server can handle 10K RPS for most workloads.** You don't add more app servers because one can't cope — you add them because you need zero-downtime deploys and can't afford a single hardware failure to take you down. That's a reliability decision, not a scale decision.
-
-- **Resilience:** this is where you harden each component individually so it survives what's coming next. A read replica gives you a hot standby — if the primary dies, you promote the replica and you're back online in seconds instead of waiting for a restore. Monitoring gives you visibility into which component is struggling before it becomes an outage. Circuit breakers on external API calls mean a downstream failure doesn't cascade into your failure. You're not just making things faster — you're making sure each piece can take a hit.
+**The key insight:** you're not changing what the system does, you're making sure each component is hardened for the load it will face. Any component you didn't prepare becomes the weak link. The system survives not because it's bigger but because each individual piece is ready.
 
 ---
 
-## ~100,000 RPS — Write throughput and app-tier limits
+## ~100,000 RPS — The shape of work changes
 
 A major consumer product, a large fintech or logistics platform, a top-50 website.
 
 - **What this is:** ~8.6B requests/day.
-- **The dominant bottleneck:** two things converge. A single Postgres instance tops out around 1K write transactions/sec. And the app tier itself starts hitting its ceiling — Node.js caps at roughly 10–50K RPS per node, Nginx around 50–100K RPS. Even Go, which can push past 100K RPS, is at its limit. At 10K RPS the app server was fine and only the DB needed help; at 100K RPS both layers need horizontal scaling.
+- **You're no longer building a traditional application.** The familiar patterns stop working — not because they're badly implemented, but because the load makes them structurally impossible. A synchronous order placement that works fine at 10K will cause cascading failures at 100K. The answer isn't a bigger server or a better cache — it's changing the shape of the work itself.
+- **The dominant bottleneck:** two things converge. A single Postgres instance tops out around 1K write transactions/sec. And the app tier itself starts hitting its ceiling — Node.js caps at roughly 10–50K RPS per node, Nginx around 50–100K RPS. Even Go, which can push past 100K RPS, is at its limit. At 10K RPS the app server was fine and only the DB needed help; at 100K RPS both layers need horizontal scaling — not for HA, but just to survive the load.
 
 ### Database strategies
 
@@ -72,7 +74,9 @@ A major consumer product, a large fintech or logistics platform, a top-50 websit
 
 At 100K RPS, queues become a core architectural pattern for writes — not just for async jobs. Instead of every request writing synchronously to the DB, you accept the request, put a message on a queue (SQS, Kafka, RabbitMQ), return immediately, and let workers process it async. This levels out write spikes dramatically.
 
-**Important distinction:** queues aren't a 100K RPS invention. Any system that has slow or unreliable async work — sending emails, processing payments, resizing images, firing webhooks — needs a queue at 10K RPS, 1K RPS, even 100 RPS. The moment work takes longer than a request should wait, can fail and needs retrying, or spikes unpredictably, you need a queue. The difference at 100K RPS is that queues become a _systemic_ write buffer — not just a place to offload slow tasks.
+**The pattern:** placing an order means writing to the DB, emitting an event, and an orchestrator picks it up asynchronously. The app doesn't "handle" the order — it accepts it and hands it off. The rules of a traditional request-response app no longer apply. Every architectural decision matters, and every component without a backup plan becomes the one that takes you down.
+
+**Important distinction:** queues aren't a 100K RPS invention. Any system that has slow or unreliable async work — sending emails, processing payments, resizing images, firing webhooks — needs a queue at 10K RPS, 1K RPS, even 100 RPS. The moment work takes longer than a request should wait, can fail and needs retrying, or spikes unpredictably, you need a queue. The difference at 100K RPS is that queues become a _systemic_ architectural pattern — not just a place to offload slow tasks, but the primary way the system processes writes at all.
 
 ### Infrastructure
 
@@ -93,7 +97,7 @@ At 100K RPS you have enough moving parts that any component without a backup pla
 - No rate limiting → one bad actor takes you down
 - One app server → it crashes during a deploy, you're offline
 
-This is the Suicide Mission problem. You can execute perfectly everywhere else, but the one role you didn't prepare for is the one that kills you. Multi-region, autoscaling, circuit breakers, and rate limiting aren't just performance tools — they're the answer to "what happens when this specific thing dies?"
+You can execute perfectly everywhere else, but the one component you didn't prepare for is the one that kills you. Multi-region, autoscaling, circuit breakers, and rate limiting aren't just performance tools — they're the answer to "what happens when this specific thing dies?"
 
 ---
 
@@ -133,5 +137,10 @@ The cleaner framing: **if caching is effective, you may not need read replicas f
 ```
 
 Each jump isn't "more of the same" — it's a fundamentally different problem class. The jump from 1K to 10K is operational. The jump from 10K to 100K is architectural. The jump to 1M is organisational.
+
+**The narrative arc:**
+
+- **10K:** the architecture doesn't change shape, but vertical scaling stops being the answer. You introduce a helper for each pressure point and harden each component individually.
+- **100K:** you're not building a traditional app anymore. The shape of work has to change — async, event-driven, orchestrated. Every decision carries real consequences.
 
 The resilience thread follows the same pattern: each tier has a different resilience _philosophy_, not just a checklist. Backups accept downtime. Alerting means you know when you're down. Hardening components means they survive individually. No single point of failure means the system survives any one component dying. Chaos engineering means you've stopped trying to prevent failure and started designing for it.

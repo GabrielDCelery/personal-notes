@@ -119,7 +119,7 @@ A mission briefing screen — incoming RPS mapped to Mass Effect missions, cross
 ~100 RPS     → Illium              → ship it.           back it up.
 ~1K RPS      → Horizon             → index, pool.       alerting.
 ~10K RPS     → Loyalty Missions    → cache.             replica. watch it.
-~100K RPS    → Suicide Mission     → shard, CDN, queues. no single points of failure.
+~100K RPS    → Suicide Mission     → async, shard, queues. no single points of failure.
 ~1M RPS      → THE REAPERS         → DARK SPACE
 ```
 
@@ -139,8 +139,8 @@ Two threads per line, separated by a period. Left is the scale answer. Right is 
 
 - **Illium** — routine, nothing needed. back it up and go home.
 - **Horizon** — scrappy survival, patch what you have, no new components ← we are here
-- **Loyalty Missions** — invest in each component individually. make it faster _and_ make sure it survives. a component you didn't harden is Grunt without a loyalty mission.
-- **Suicide Mission** — everyone has a role. ask of every component: if this dies, does everything else die with it? the one you didn't prepare for is the one that kills you.
+- **Loyalty Missions** — the architecture doesn't change shape, but vertical scaling has stopped being the answer. introduce a helper for each pressure point: CDN for static load, Redis for hot reads, read replicas for resilience, horizontal app servers for HA. harden each component individually so it survives what's next. a component you didn't prepare is Grunt without a loyalty mission — technically present, functionally a liability.
+- **Suicide Mission** — you're not building a traditional app anymore. synchronous writes that survived Loyalty Missions will fail here. placing an order means writing to the DB, emitting an event, and an orchestrator picks it up. the app accepts work, it doesn't complete it. every component needs a backup plan. the one role you didn't prepare for is the one that kills you.
 - **The Reapers** — you didn't build for this, everything is custom. assume failure, test it deliberately.
 
 _Kelly's objection here: you looked at the terminal, saw "cache" further down the list, and started building Redis. You're at Horizon. The terminal told you exactly what Horizon needs — index and pool. You skipped the line. You built a Loyalty Mission solution for a Horizon problem and your tables still don't have indexes._
@@ -269,7 +269,7 @@ On the terminal screen in front of him, a mission briefing display shows a tiere
 ~100 RPS     → Illium              → ship it.            back it up.
 ~1K RPS      → Horizon             → index, pool.        alerting.
 ~10K RPS     → Loyalty Missions    → cache.              replica. watch it.
-~100K RPS    → Suicide Mission     → shard, CDN, queues. no single points of failure.
+~100K RPS    → Suicide Mission     → async, shard, queues. no single points of failure.
 ~1M RPS      → THE REAPERS         → DARK SPACE
 ```
 
