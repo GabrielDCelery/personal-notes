@@ -1,22 +1,21 @@
 # Mordin's Lab — (Databases)
 
-Mordin's lab is where the precise work happens. He doesn't deal in rough capacity tiers — that's Pressly's job. Mordin knows the mechanisms. Why reads are fast. Why writes are slow. Why an index turns 1,000,000 comparisons into 30. Why Postgres needs PgBouncer when nothing else does.
+Mordin's lab is where the precise work happens. He doesn't deal in rough capacity tiers — that's Pressly's job. Mordin knows the internals. Why reads are fast. Why writes are slow. Why an index turns 1,000,000 comparisons into 30. Why a write-heavy workload fills the MVCC shelf faster than vacuum can clear it.
 
 Maps to: **03-databases.md**
 
 ## Theme
 
-Precision. Mordin knows the internals — not just what the limits are, but exactly why they exist and what controls them.
+Precision. Mordin knows the internals — not just what the limits are, but exactly why they exist and what controls them. You walked in on him mid-research. Everything on the workstation is active.
 
 ## Narrative Ordering Principle
 
 Anchors ordered by severity — most catastrophic and irreversible first, most mechanical and fixable last. Mordin opens with controlled urgency and relaxes into precision as the topics become recoverable.
 
-1. **Wrong database pick** — irreversible, months to undo, driven by asking the wrong question. MongoDB because migrations are annoying. DynamoDB because it scales. The embed/reference trap. The access pattern lock-in. This is the one that keeps him up at night.
-2. **Missing index** — weeks of mystery slow queries, invisible until production, fixable in hours once found
-3. **No connection pool** — Postgres forking 500 processes, 5GB gone before a query runs, fixable but only after something breaks
-4. **Write amplification from indexes** — you added indexes to fix reads and made writes worse, schema-level decision with real cost
-5. **RAM vs disk** — wrong instance type, you're running to the filing room on every query until you fix it
+1. **Wrong database pick** — irreversible, months to undo, driven by asking the wrong question. The embed/reference trap. The access pattern lock-in. This is the one that keeps him up at night.
+2. **Missing index / write amplification** — weeks of mystery slow queries, then overcorrection, then rebuild cycles. Fixable but only after paying the cost.
+3. **RAM vs disk** — wrong instance type, every query running to the filing room. Fixable with the right instance.
+4. **MVCC overhead** — vacuum can't keep up with write load, dead tuples accumulate, performance degrades quietly.
 
 The wrong database is Mordin's genophage — a decision made early that determines everything that follows. He'd rather be the one who makes sure you understand it correctly than leave it to someone who might get it wrong.
 
@@ -24,9 +23,8 @@ The wrong database is Mordin's genophage — a decision made early that determin
 
 ```
                     [BACK WALL DISPLAY — Which Database]
-[Whiteboard]   [Central Workstation — Mordin]   [Corner — Lab Assistants]
-[Scaling]      [Two Trays]  [Directory]          [PgBouncer / MVCC shelf]
-               [Side bench — sample storage]
+[Whiteboard]   [Central Workstation — Mordin]         [Back Corner]
+[Scaling]      [Samples] [Documents] [Two Trays]      [MVCC shelf]
                             [ENTER]
 ```
 
@@ -35,12 +33,11 @@ Compact lab. You enter from the lower deck corridor. Mordin is immediately visib
 ## Route Through the Room
 
 1. **Enter** — Mordin mid-monologue, running through the write path out loud
-2. **Central workstation — two trays** — reads vs writes, the asymmetry
-3. **Side bench** — bench, cabinet, filing room: RAM vs disk
-4. **Directory on the workstation corner** — indexes, leftmost prefix rule, B-tree
-5. **Back wall display** — which database decision framework
-6. **Whiteboard** — scaling in order, numbered, strict
-7. **Back corner** — lab assistants crowding the door, MVCC shelf, PgBouncer supervisor
+2. **Central workstation — samples** — which database, why Postgres, the migration decision
+3. **Central workstation — documents + trays** — indexes, write path, RAM vs disk
+4. **Back wall display** — decision framework summary
+5. **Whiteboard** — scaling in order, numbered, strict
+6. **Back corner** — MVCC shelf, dead tuples, vacuum overhead
 
 ---
 
