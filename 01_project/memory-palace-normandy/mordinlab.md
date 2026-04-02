@@ -179,6 +179,18 @@ _"Wrong question: which database is best. Right question: what are your access p
 
 ---
 
+## Transition — From Samples to Index Research
+
+Mordin sets the three containers to one side. Not away — they stay on the bench, reference material. He turns back to the workstation, pulls a stack of documents toward him. Migration schema. Query logs. Several things annotated in red.
+
+_"Choice is made. Postgres. Correct choice. Now the harder part."_
+
+He doesn't look up.
+
+_"Knowing the varren can hunt anything is not the same as knowing where to point it."_
+
+---
+
 ## Anchor 1 — Central Workstation: The Two Trays (Reads vs Writes)
 
 Two trays side by side on the workstation. Left and right. The asymmetry is obvious at a glance.
@@ -221,19 +233,74 @@ Mordin: _"One question. Is the working set on the bench or down the hall? Everyt
 
 ---
 
-## Anchor 3 — Directory on the Workstation Corner (Indexes)
+## Anchor 3 — Research Index: Schema and Indexes
 
-A large thick directory on the corner of the workstation. Omega residents. Sorted by last name, then first name.
+The stack of documents on the workstation. Migration notes, query logs, schema diagrams. Several pages have columns crossed out and redrawn. One page has a single word underlined three times: **ORDER.**
 
-**The phonebook test:**
+Mordin picks up a query log, sets it down again.
 
-- You have last name → open to that section, scan. Fast. ~30 pages.
-- You have last name + first name → one entry. Done.
-- You have only first name → check every entry in the entire directory.
+_"Medical records. Moved from MongoDB. Structure is correct now — no more embedded colony status, no more stale location data. Joins are fast. Cross-referencing works. Good."_
 
-That is the leftmost prefix rule. A composite index on `(user_id, created_at)` supports `user_id` alone or `user_id + created_at`, but not `created_at` alone. The directory is sorted left to right. You must start from the left column.
+A pause.
 
-Below the directory: a laminated B-tree card:
+_"First query across the full dataset. Filtering by colony of origin. One million records. Took four seconds. Unacceptable — I need to run this hundreds of times."_
+
+He taps the schema diagram.
+
+_"Missing index. Added it. Query: eight milliseconds. Correct. Then I added indexes for every query pattern I could anticipate. Every species combination. Every date range. Every symptom cluster."_
+
+He picks up the query log again.
+
+_"Writes slowed. Every new record — collector weapon effect data, new sample, new observation — touching nine indexes on insertion. Migration, rebuild, refill. Three days. Expensive."_
+
+He sets it down.
+
+_"Then the composite index problem. Indexed by species first, then colony. Most queries filter by species — correct decision. Then I needed colony alone. Index useless. Wrong column order. Rebuild again."_
+
+He pulls out a single laminated card. Clean, unlike everything else on the workstation.
+
+_"Made the card after the third rebuild. Stops me doing it again."_
+
+The card reads:
+
+```
+Query by species + colony      →  index (species, colony)   ✓
+Query by species alone         →  index (species, colony)   ✓  leftmost prefix
+Query by colony alone          →  index (species, colony)   ✗  must rebuild
+```
+
+_"Leftmost prefix rule. The index is sorted left to right. You must start from the left column. Querying the middle or right column alone — full scan."_
+
+He gestures at the schema diagram.
+
+_"Two decisions that determine everything. First: what is a column, what stays JSONB."_
+
+He points to two sections of the schema.
+
+_"Symptom presentation — varies per species, changes as I learn more about the weapon, unpredictable structure. JSONB. Flexible, stores anything, schema can evolve. Not efficiently queryable — acceptable, I do not filter by symptom in the main queries."_
+
+_"Colony of origin, species, collection date — queried constantly, always the same shape, must be fast. Columns. Indexable. Not JSONB."_
+
+_"Second decision: which columns to index, in which order, how many. Index too few — slow reads, queries hang. Index too many — slow writes, rebuild cycles, storage cost."_
+
+He taps the annotation in red at the bottom of the schema.
+
+_"Write-heavy tables: as few indexes as possible. Read-heavy: more acceptable. This table receives new records constantly. Every index is a cost on every insert."_
+
+He sets the documents down.
+
+_"The varren can handle it. That was never the question. The question is what you ask it to carry."_
+
+**What this anchor encodes:**
+
+- Missing index turns milliseconds into seconds — invisible until you run the query at scale
+- Over-indexing slows writes — every index is maintained on every insert
+- Schema decision: JSONB for variable/evolving structure, columns for anything you filter or sort by
+- Composite index column order is fixed — leftmost prefix rule, wrong order means rebuild
+- The cost of getting it wrong: migration, rebuild, refill cycles are expensive
+- Balance: index what you query, nothing more
+
+Below the documents: a laminated B-tree card:
 
 ```
 Without index, 1 billion rows:   scan all 1,000,000,000
